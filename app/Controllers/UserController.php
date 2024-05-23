@@ -31,6 +31,13 @@ class UserController
             $users->where('name', 'like', '%' . $name . '%');
         }
 
+        if (isset($_GET['role_name'])) {
+            $roleName = urldecode($_GET['role_name']);
+            $users->whereHas('role', function ($query) use ($roleName) {
+                $query->where('name', 'like', '%' . $roleName . '%');
+            });
+        }
+
         $users = $users->get();
         foreach ($users as $index => $user) {
             $role = Role::query()->where('id',$user->role_id)->first();

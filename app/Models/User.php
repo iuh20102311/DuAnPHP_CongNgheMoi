@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Exception;
@@ -21,18 +22,19 @@ class User extends Model
 
     public function orders(): HasMany
     {
-        return $this->hasMany(Order::class,'user_id');
+        return $this->hasMany(Order::class, 'user_id');
     }
 
-    public function roles() : HasOne
+    public function role(): BelongsTo
     {
-        return $this->hasOne(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);
     }
+
 
     /**
      * @throws Exception
