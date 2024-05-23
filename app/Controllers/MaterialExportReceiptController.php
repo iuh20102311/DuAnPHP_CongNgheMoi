@@ -2,7 +2,9 @@
 
 namespace App\Controllers;
 
+use App\Models\Material;
 use App\Models\MaterialExportReceipt;
+use App\Models\MaterialExportReceiptDetail;
 use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -43,8 +45,14 @@ class MaterialExportReceiptController
 
     public function getExportReceiptDetailsByExportReceipt($id)
     {
-        $materialER = MaterialExportReceipt::query()->where('id',$id)->first();
-        return $materialER->MaterialExportReceiptDetails;
+        $materialERs = MaterialExportReceipt::query()->where('id',$id)->first();
+        $materialERDList = $materialERs->MaterialExportReceiptDetails;
+        foreach ($materialERDList as $key => $value) {
+            $material = Material::query()->where('id', $value->material_id)->first();
+            unset($value->material_id);
+            $value->material = $material;
+        }
+        return $materialERDList;
     }
 
     public function createMaterialExportReceipt(): Model

@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\Material;
 use App\Models\MaterialImportReceipt;
 use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Collection;
@@ -63,8 +64,14 @@ class MaterialImportReceiptController
 
     public function getImportReceiptDetailsByImportReceipt($id)
     {
-        $materialIR = MaterialImportReceipt::query()->where('id',$id)->first();
-        return $materialIR->MaterialImportReceiptDetails;
+        $materialIRs = MaterialImportReceipt::query()->where('id',$id)->first();
+        $materialIRDList = $materialIRs->MaterialImportReceiptDetails;
+        foreach ($materialIRDList as $key => $value) {
+            $material = Material::query()->where('id', $value->material_id)->first();
+            unset($value->material_id);
+            $value->material = $material;
+        }
+        return $materialIRDList;
     }
 
     public function createMaterialImportReceipt(): Model

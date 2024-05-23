@@ -91,29 +91,22 @@ class AuthController
         try {
             $data = json_decode(file_get_contents('php://input'), true);
 
-            // Kiểm tra các trường bắt buộc
-            if (!isset($data['name']) || !isset($data['email']) || !isset($data['password'])) {
+            if (!isset($data['email']) || !isset($data['password'])) {
                 http_response_code(400);
-                echo json_encode(['error' => 'Name, email, and password are required']);
+                echo json_encode(['error' => 'Email and password are required']);
                 return;
             }
 
-            // Kiểm tra email đã tồn tại hay chưa
             if (User::where('email', $data['email'])->exists()) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Email already exists']);
                 return;
             }
 
-            // Mã hóa mật khẩu
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+            $data['role_id'] = $data['role_id'] ?? 1;
 
-            // Đặt giá trị mặc định cho role_id nếu không có trong dữ liệu đầu vào
-            $data['role_id'] = $data['role_id'] ?? 1; // Ví dụ: 1 là giá trị mặc định cho role_id
-
-            // Tạo người dùng
             $createdUser = User::create([
-                'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'role_id' => $data['role_id']

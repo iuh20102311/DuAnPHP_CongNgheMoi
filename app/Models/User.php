@@ -14,7 +14,7 @@ class User extends Model
 {
     use HasFactory;
     protected $table = 'users';
-    protected $fillable = ['role_id','email','email_verified_at','password','remember_token','created_at','updated_at'];
+    protected $fillable = ['role_id','email','email_verified_at','password','remember_token','status','created_at','updated_at'];
     protected $primaryKey = 'id';
     public $timestamps = true;
 
@@ -40,8 +40,9 @@ class User extends Model
     public function validate(array $data)
     {
         $validators = [
-            'email' => v::notEmpty()->email()->setName('Email')->setTemplate('Email không được rỗng và phải hợp lệ'),
-            'password' => v::notEmpty()->setName('Password')->setTemplate('Password không được rỗng'),
+            'email' => v::notEmpty()->email()->setName('email')->setTemplate('Email không được rỗng và phải hợp lệ'),
+            'password' => v::notEmpty()->setName('password')->setTemplate('Password không được rỗng'),
+            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
         ];
 
         $errors = [];
