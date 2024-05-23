@@ -141,24 +141,29 @@ class AuthController
                 return;
             }
 
-            if ($this->checkEmailExistence($data['email'])) {
+            $zeroBounceApiKey = '3a8a2ee7fe574fc583f54857c8e0e2d9';
+            $emailToCheck = $data['email'];
+            $apiUrl = "https://api.zerobounce.net/v2/validate?api_key=$zeroBounceApiKey&email=$emailToCheck";
+            $response = file_get_contents($apiUrl);
+            $responseData = json_decode($response, true);
+
+            if (!$responseData || !isset($responseData['status']) || $responseData['status'] !== 'valid') {
                 http_response_code(400);
-                echo json_encode(['error' => 'Email already exists']);
+                echo json_encode(['error' => 'Invalid or non-existent email']);
                 return;
             }
 
             // Mã hóa mật khẩu
-            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
             $data['role_id'] = $data['role_id'] ?? 1;
 
             // Tạo người dùng mới
             $createdUser = User::create([
                 'email' => $data['email'],
-                'password' => $data['password'],
+                'password' => $hashedPassword,
                 'role_id' => $data['role_id']
             ]);
 
-            // Tạo hồ sơ cho người dùng mới
             $fullName = trim($data['name']);
             $nameParts = explode(' ', $fullName);
             $lastName = array_pop($nameParts);
@@ -179,14 +184,12 @@ class AuthController
             http_response_code(201);
             echo json_encode($createdUser);
 
-        } catch (QueryException $e) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
         } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(['error' => 'General error: ' . $e->getMessage()]);
+            echo json_encode(['error' => 'Error registering user: ' . $e->getMessage()]);
         }
     }
+
 
 
     public function changePassword(): string
