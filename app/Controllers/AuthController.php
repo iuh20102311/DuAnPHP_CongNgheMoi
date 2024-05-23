@@ -19,6 +19,8 @@ use Lcobucci\JWT\Token\InvalidTokenStructure;
 use Lcobucci\JWT\Token\Plain;
 use Lcobucci\JWT\Token\UnsupportedHeaderFound;
 use Lcobucci\JWT\Token\Parser;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VerifyEmail;
 
 
 class AuthController
@@ -85,6 +87,48 @@ class AuthController
             return false;
         }
     }
+    public function checkEmailExistence($email)
+    {
+        // API endpoint và API key
+        $apiEndpoint = 'https://emailverification.whoisxmlapi.com/api/v3';
+        $apiKey = 'at_kalegIeEx43vPpE6dVkBBS5BUWJ56';
+
+        // Tạo URL cho yêu cầu
+        $url = $apiEndpoint . '?apiKey=' . $apiKey . '&emailAddress=' . urlencode($email);
+
+        // Khởi tạo một cURL session
+        $curl = curl_init();
+
+        // Thiết lập các tùy chọn của cURL
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+        ]);
+
+        // Gửi yêu cầu và lấy phản hồi
+        $response = curl_exec($curl);
+
+        // Kiểm tra lỗi nếu có
+        if (curl_errno($curl)) {
+            $error = curl_error($curl);
+            curl_close($curl);
+            throw new Exception('cURL error: ' . $error);
+        }
+
+        curl_close($curl);
+
+        $responseData = json_decode($response, true);
+
+        if (isset($responseData['emailExists']) && $responseData['emailExists'] === true) {
+            return true; // Email tồn tại
+        } else {
+            return false; // Email không tồn tại
+        }
+    }
 
     public function register()
     {
@@ -97,21 +141,24 @@ class AuthController
                 return;
             }
 
-            if (User::where('email', $data['email'])->exists()) {
+            if ($this->checkEmailExistence($data['email'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Email already exists']);
                 return;
             }
 
+            // Mã hóa mật khẩu
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
             $data['role_id'] = $data['role_id'] ?? 1;
 
+            // Tạo người dùng mới
             $createdUser = User::create([
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'role_id' => $data['role_id']
             ]);
 
+            // Tạo hồ sơ cho người dùng mới
             $fullName = trim($data['name']);
             $nameParts = explode(' ', $fullName);
             $lastName = array_pop($nameParts);
@@ -140,6 +187,7 @@ class AuthController
             echo json_encode(['error' => 'General error: ' . $e->getMessage()]);
         }
     }
+
 
     public function changePassword(): string
     {
@@ -187,6 +235,12 @@ class AuthController
                 return json_encode(['error' => 'Người dùng không tồn tại'], JSON_UNESCAPED_UNICODE);
             }
 
+            // Lấy profile dựa trên user_id
+            $profile = Profile::where('user_id', $userId)->first();
+            if (!$profile) {
+                return json_encode(['error' => 'Profile không tồn tại cho user_id này'], JSON_UNESCAPED_UNICODE);
+            }
+
             $role = Role::find($user->role_id);
 
             return json_encode([
@@ -194,9 +248,16 @@ class AuthController
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $role->name,
+                'first_name' => $profile->first_name,
+                'last_name' => $profile->last_name,
+                'phone' => $profile->phone,
+                'birthday' => $profile->birthday,
+                'avatar' => $profile->avatar,
+                'gender' => $profile->gender
             ], JSON_UNESCAPED_UNICODE);
         } catch (CannotDecodeContent|InvalidTokenStructure|UnsupportedHeaderFound $e) {
             return json_encode(['error' => 'Token không hợp lệ'], JSON_UNESCAPED_UNICODE);
         }
     }
+
 }
