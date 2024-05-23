@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\Product;
 use App\Models\ProductImportReceipt;
 use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Collection;
@@ -48,8 +49,14 @@ class ProductImportReceiptController
 
     public function getImportReceiptDetailsByExportReceipt($id)
     {
-        $productIR = ProductImportReceipt::query()->where('id',$id)->first();
-        return $productIR->ProductImportReceiptDetails;
+        $productIRs = ProductImportReceipt::query()->where('id',$id)->first();
+        $productIRList = $productIRs->ProductImportReceiptDetails;
+        foreach ($productIRList as $key => $value) {
+            $product = Product::query()->where('id', $value->product_id)->first();
+            unset($value->product_id);
+            $value->product = $product;
+        }
+        return $productIRList;
     }
 
     public function createProductImportReceipt(): Model | string
