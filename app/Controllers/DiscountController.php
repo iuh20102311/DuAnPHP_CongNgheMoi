@@ -68,26 +68,43 @@ class DiscountController
         return 'Thêm thành công';
     }
 
-    public function createDiscount(): Model
+    public function createDiscount(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $discount = new Discount();
-        $discount->validate($data);
+        $error = $discount->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $discount->fill($data);
         $discount->save();
         return $discount;
     }
 
-    public function updateDiscountById($id): bool | int
+    public function updateDiscountById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $discount = Discount::find($id);
 
-        if ($discount) {
-            $discount->validate($data);
-            return $discount->update($data);
+        if (!$discount) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $discount->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $discount->fill($data);
+        $discount->save();
+
+        return $discount;
     }
 
     public function deleteDiscount($id)

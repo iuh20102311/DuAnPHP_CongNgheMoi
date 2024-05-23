@@ -77,26 +77,43 @@ class CustomerController
             return null;
         }
     }
-    public function createCustomer(): Model
+    public function createCustomer(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $customer = new Customer();
-        $customer->validate($data);
+        $error = $customer->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $customer->fill($data);
         $customer->save();
         return $customer;
     }
 
-    public function updateCustomerById($id): bool | int
+    public function updateCustomerById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $customer = Customer::find($id);
 
-        if ($customer) {
-            $customer->validate($data);
-            return $customer->update($data);
+        if (!$customer) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $customer->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $customer->fill($data);
+        $customer->save();
+
+        return $customer;
     }
 
     public function deleteCustomer($id)

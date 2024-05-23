@@ -47,26 +47,43 @@ class WarehouseController
         return $warehouse->inventories;
     }
 
-    public function createWarehouse(): Model
+    public function createWarehouse(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $warehouse = new Warehouse();
-        $warehouse->validate($data);
+        $error = $warehouse->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $warehouse->fill($data);
         $warehouse->save();
         return $warehouse;
     }
 
-    public function updateWarehouseById($id): bool | int
+    public function updateWarehouseById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $warehouse = Warehouse::find($id);
 
-        if ($warehouse) {
-            $warehouse->validate($data);
-            return $warehouse->update($data);
+        if (!$warehouse) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $warehouse->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $warehouse->fill($data);
+        $warehouse->save();
+
+        return $warehouse;
     }
 
     public function deleteWarehouse($id)

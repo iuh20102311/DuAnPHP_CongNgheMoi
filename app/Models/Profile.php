@@ -20,7 +20,7 @@ class Profile extends Model
     /**
      * @throws Exception
      */
-    public function validate(array $data)
+    public function validate(array $data, bool $isUpdate = false) : string
     {
         $validators = [
             'user_id' => v::notEmpty()->setName('user_id')->setTemplate('Người dùng không được rỗng'),
@@ -31,21 +31,19 @@ class Profile extends Model
             'avatar' => v::notEmpty()->setName('email')->setTemplate('Email không được rỗng'),
         ];
 
-        $errors = [];
+        $error = "";
         foreach ($validators as $field => $validator) {
+            if ($isUpdate && !array_key_exists($field, $data)) {
+                continue;
+            }
+
             try {
                 $validator->assert(isset($data[$field]) ? $data[$field] : null);
             } catch (ValidationException $exception) {
-                $errors[$field] = $exception->getMessages();
+                $error = $exception->getMessage();
+                break;
             }
         }
-
-        if (isset($data['user_id']) && !User::find($data['user_id'])) {
-            $errors['user_id'] = ['Người dùng không tồn tại'];
-        }
-
-        if (!empty($errors)) {
-            throw new Exception(json_encode(['errors' => $errors]), 400);
-        }
+        return $error;
     }
 }

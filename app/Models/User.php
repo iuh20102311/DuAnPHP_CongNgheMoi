@@ -37,25 +37,26 @@ class User extends Model
     /**
      * @throws Exception
      */
-    public function validate(array $data)
+    public function validate(array $data, bool $isUpdate = false) : string
     {
         $validators = [
             'email' => v::notEmpty()->email()->setName('email')->setTemplate('Email không được rỗng và phải hợp lệ'),
             'password' => v::notEmpty()->setName('password')->setTemplate('Password không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
         ];
 
-        $errors = [];
+        $error = "";
         foreach ($validators as $field => $validator) {
+            if ($isUpdate && !array_key_exists($field, $data)) {
+                continue;
+            }
+
             try {
                 $validator->assert(isset($data[$field]) ? $data[$field] : null);
             } catch (ValidationException $exception) {
-                $errors[$field] = $exception->getMessages();
+                $error = $exception->getMessage();
+                break;
             }
         }
-
-        if (!empty($errors)) {
-            throw new Exception(json_encode(['errors' => $errors]), 400);
-        }
+        return $error;
     }
 }

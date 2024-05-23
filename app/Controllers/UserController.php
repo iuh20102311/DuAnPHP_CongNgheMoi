@@ -87,14 +87,34 @@ class UserController
         }
     }
 
-    public function updateUserById($id): bool|int
+    public function updateUserById(int $id): Model | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
-        if (isset($data['password'])) {
-            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        $user = User::find($id);
+
+        if (!$user) {
+            http_response_code(404);
+            return json_encode(["error" => "User not found"]);
         }
-        $user = User::query()->where('id', $id)->first();
-        return $user->update($data);
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        unset($user->password);
+
+        $error = $user->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        foreach ($data as $key => $value) {
+            $user->$key = $value;
+        }
+
+        $user->save();
+
+        return $user;
     }
 
 //    public function deleteUser($id)
@@ -121,7 +141,9 @@ class UserController
         $token = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : null;
 
         if (!$token) {
-            return json_encode(['error' => 'Token không tồn tại'], JSON_UNESCAPED_UNICODE);
+            http_response_code(400);
+            echo json_encode(['error' => 'Token không tồn tại'], JSON_UNESCAPED_UNICODE);
+            return;
         }
 
         try {
@@ -129,25 +151,32 @@ class UserController
             $parsedToken = $parser->parse($token);
 
             $userId = $parsedToken->claims()->get('id');
+
             if (!$userId) {
-                return json_encode(['error' => 'Token không hợp lệ'], JSON_UNESCAPED_UNICODE);
+                http_response_code(400);
+                echo json_encode(['error' => 'Token không hợp lệ'], JSON_UNESCAPED_UNICODE);
+                return;
             }
 
-            $user = User::find($userId);
-
-            if (!$user) {
-                return json_encode(['error' => 'Người dùng không tồn tại'], JSON_UNESCAPED_UNICODE);
+            $currentUser = User::find($userId);
+            if (!$currentUser) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Người dùng không tồn tại'], JSON_UNESCAPED_UNICODE);
+                return;
             }
 
-            $role = Role::find($user->role_id);
-
-            if ($role && $role->role_name === 'Super_Admin') {
+            // Lấy role của người dùng hiện tại
+            $role = Role::find($currentUser->role_id);
+            error_log($role);
+            if ($role && $role->name === 'SUPER_ADMIN') {
                 $userToDelete = User::find($id);
                 if (!$userToDelete) {
                     http_response_code(404);
-                    return json_encode(['error' => 'User not found'], JSON_UNESCAPED_UNICODE);
+                    echo json_encode(['error' => 'User not found'], JSON_UNESCAPED_UNICODE);
+                    return;
                 }
 
+                // Thay đổi trạng thái của người dùng và hồ sơ
                 $userToDelete->status = 'DELETED';
                 $userToDelete->save();
 
@@ -157,14 +186,15 @@ class UserController
                 }
 
                 http_response_code(200);
-                return json_encode(['message' => 'User and profile deleted successfully'], JSON_UNESCAPED_UNICODE);
+                echo json_encode(['message' => 'User and profile deleted successfully'], JSON_UNESCAPED_UNICODE);
             } else {
                 http_response_code(403);
-                return json_encode(['error' => 'Permission denied'], JSON_UNESCAPED_UNICODE);
+                echo json_encode(['error' => 'Permission denied'], JSON_UNESCAPED_UNICODE);
             }
 
-        } catch (CannotDecodeContent | InvalidTokenStructure | UnsupportedHeaderFound $e) {
-            return json_encode(['error' => 'Token không hợp lệ: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to delete user and profile: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
         }
     }
 }

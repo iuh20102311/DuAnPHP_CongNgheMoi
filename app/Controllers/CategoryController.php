@@ -90,26 +90,43 @@ class CategoryController
      * @throws Exception
      */
 
-    public function createCategory(): Model
+    public function createCategory(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $category = new Category();
-        $category->validate($data);
+        $error = $category->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $category->fill($data);
         $category->save();
         return $category;
     }
 
-    public function updateCategoryById($id): bool | int
+    public function updateCategoryById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $category = Category::find($id);
 
-        if ($category) {
-            $category->validate($data);
-            return $category->update($data);
+        if (!$category) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $category->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $category->fill($data);
+        $category->save();
+
+        return $category;
     }
 
     public function deleteCategory($id)

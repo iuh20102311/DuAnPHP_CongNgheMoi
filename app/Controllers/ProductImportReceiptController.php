@@ -52,26 +52,43 @@ class ProductImportReceiptController
         return $productIR->ProductImportReceiptDetails;
     }
 
-    public function createProductImportReceipt(): Model
+    public function createProductImportReceipt(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $productIR = new ProductImportReceipt();
-        $productIR->validate($data);
+        $error = $productIR->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $productIR->fill($data);
         $productIR->save();
         return $productIR;
     }
 
-    public function updateProductImportReceiptById($id): bool | int
+    public function updateProductImportReceiptById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $productIR = ProductImportReceipt::find($id);
 
-        if ($productIR) {
-            $productIR->validate($data);
-            return $productIR->update($data);
+        if (!$productIR) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $productIR->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $productIR->fill($data);
+        $productIR->save();
+
+        return $productIR;
     }
 
     public function deleteProductImportReceipt($id): string

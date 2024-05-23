@@ -26,7 +26,7 @@ class Customer extends Model
     /**
      * @throws Exception
      */
-    public function validate(array $data)
+    public function validate(array $data, bool $isUpdate = false) : string
     {
         $validators = [
             'group_customer_id' => v::notEmpty()->setName('group_customer_id')->setTemplate('Nhóm khách hàng không được rỗng'),
@@ -41,21 +41,19 @@ class Customer extends Model
             'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
         ];
 
-        $errors = [];
+        $error = "";
         foreach ($validators as $field => $validator) {
+            if ($isUpdate && !array_key_exists($field, $data)) {
+                continue;
+            }
+
             try {
                 $validator->assert(isset($data[$field]) ? $data[$field] : null);
             } catch (ValidationException $exception) {
-                $errors[$field] = $exception->getMessages();
+                $error = $exception->getMessage();
+                break;
             }
         }
-
-        if (isset($data['group_customer_id']) && !GroupCustomer::find($data['group_customer_id'])) {
-            $errors['group_customer_id'] = ['Nhóm khách hàng không tồn tại'];
-        }
-
-        if (!empty($errors)) {
-            throw new Exception(json_encode(['errors' => $errors]), 400);
-        }
+        return $error;
     }
 }

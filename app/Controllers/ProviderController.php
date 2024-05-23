@@ -6,7 +6,8 @@ use App\Models\Material;
 use App\Models\Provider;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-
+use Respect\Validation\Validator as v;
+use Respect\Validation\Exceptions\ValidationException;
 
 class ProviderController
 {
@@ -69,26 +70,43 @@ class ProviderController
         return 'Thêm thành công';
     }
 
-    public function createProvider(): Model
+    public function createProvider(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $provider = new Provider();
-        $provider->validate($data);
+        $error = $provider->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $provider->fill($data);
         $provider->save();
         return $provider;
     }
 
-    public function updateProviderById($id): bool | int
+    public function updateProviderById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $provider = Provider::find($id);
 
-        if ($provider) {
-            $provider->validate($data);
-            return $provider->update($data);
+        if (!$provider) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $provider->validate($data, true); // Gọi hàm validate với tham số thứ hai là true để chỉ kiểm tra những trường được cập nhật
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $provider->fill($data);
+        $provider->save();
+
+        return $provider;
     }
 
     public function deleteProvider($id)

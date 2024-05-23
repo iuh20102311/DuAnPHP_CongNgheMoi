@@ -113,26 +113,43 @@ class OrderController
         return $orderDetails;
     }
 
-    public function createOrder(): Model
+    public function createOrder(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $order = new Order();
-        $order->validate($data);
+        $error = $order->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $order->fill($data);
         $order->save();
         return $order;
     }
 
-    public function updateOrderById($id): bool | int
+    public function updateOrderById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $order = Order::find($id);
 
-        if ($order) {
-            $order->validate($data);
-            return $order->update($data);
+        if (!$order) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $order->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $order->fill($data);
+        $order->save();
+
+        return $order;
     }
 
     public function deleteOrder($id)

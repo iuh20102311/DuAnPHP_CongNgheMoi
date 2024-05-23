@@ -44,26 +44,43 @@ class GroupCustomerController
         }
     }
 
-    public function createGroupCustomer(): Model
+    public function createGroupCustomer(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $groupcustomer = new GroupCustomer();
-        $groupcustomer->validate($data);
+        $error = $groupcustomer->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $groupcustomer->fill($data);
         $groupcustomer->save();
         return $groupcustomer;
     }
 
-    public function updateGroupCustomerById($id): bool | int
+    public function updateGroupCustomerById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $groupcustomer = GroupCustomer::find($id);
 
-        if ($groupcustomer) {
-            $groupcustomer->validate($data);
-            return $groupcustomer->update($data);
+        if (!$groupcustomer) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $groupcustomer->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $groupcustomer->fill($data);
+        $groupcustomer->save();
+
+        return $groupcustomer;
     }
 
     public function deleteGroupCustomer($id)

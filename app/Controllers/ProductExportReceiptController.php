@@ -52,26 +52,43 @@ class ProductExportReceiptController
         return $productER->ProductExportReceiptDetails;
     }
 
-    public function createProductExportReceipt(): Model
+    public function createProductExportReceipt(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $productER = new ProductExportReceipt();
-        $productER->validate($data);
+        $error = $productER->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $productER->fill($data);
         $productER->save();
         return $productER;
     }
 
-    public function updateProductExportReceiptById($id): bool | int
+    public function updateProductExportReceiptById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $productER = ProductExportReceipt::find($id);
 
-        if ($productER) {
-            $productER->validate($data);
-            return $productER->update($data);
+        if (!$productER) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $productER->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $productER->fill($data);
+        $productER->save();
+
+        return $productER;
     }
 
     public function deleteProductExportReceipt($id): string

@@ -53,26 +53,43 @@ class ProductInventoryController
         return $productinventory;
     }
 
-    public function createProductInventory(): Model
+    public function createProductInventory(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $productinventory = new ProductInventory();
-        $productinventory->validate($data);
+        $error = $productinventory->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $productinventory->fill($data);
         $productinventory->save();
         return $productinventory;
     }
 
-    public function updateProductInventoryById($id): bool | int
+    public function updateProductInventoryById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $productinventory = ProductInventory::find($id);
 
-        if ($productinventory) {
-            $productinventory->validate($data);
-            return $productinventory->update($data);
+        if (!$productinventory) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $productinventory->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $productinventory->fill($data);
+        $productinventory->save();
+
+        return $productinventory;
     }
 
     public function deleteProductInventory($id)

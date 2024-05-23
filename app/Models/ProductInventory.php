@@ -33,7 +33,7 @@ class ProductInventory extends Model
     /**
      * @throws Exception
      */
-    public function validate(array $data)
+    public function validate(array $data, bool $isUpdate = false) : string
     {
         $validators = [
             'product_id' => v::notEmpty()->setName('product_id')->setTemplate('Khách hàng không được rỗng'),
@@ -43,25 +43,19 @@ class ProductInventory extends Model
             'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
         ];
 
-        $errors = [];
+        $error = "";
         foreach ($validators as $field => $validator) {
+            if ($isUpdate && !array_key_exists($field, $data)) {
+                continue;
+            }
+
             try {
                 $validator->assert(isset($data[$field]) ? $data[$field] : null);
             } catch (ValidationException $exception) {
-                $errors[$field] = $exception->getMessages();
+                $error = $exception->getMessage();
+                break;
             }
         }
-
-        if (isset($data['product_id']) && !Product::find($data['product_id'])) {
-            $errors['product_id'] = ['Khách hàng không tồn tại'];
-        }
-
-        if (isset($data['warehouse_id']) && !Warehouse::find($data['warehouse_id'])) {
-            $errors['warehouse_id'] = ['Nhà không không tồn tại'];
-        }
-
-        if (!empty($errors)) {
-            throw new Exception(json_encode(['errors' => $errors]), 400);
-        }
+        return $error;
     }
 }

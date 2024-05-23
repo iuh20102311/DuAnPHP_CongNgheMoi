@@ -55,26 +55,43 @@ class MaterialExportReceiptController
         return $materialERDList;
     }
 
-    public function createMaterialExportReceipt(): Model
+    public function createMaterialExportReceipt(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $materialER = new MaterialExportReceipt();
-        $materialER->validate($data);
+        $error = $materialER->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $materialER->fill($data);
         $materialER->save();
         return $materialER;
     }
 
-    public function updateMaterialExportReceiptById($id): bool | int
+    public function updateMaterialExportReceiptById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $materialER = MaterialExportReceipt::find($id);
 
-        if ($materialER) {
-            $materialER->validate($data);
-            return $materialER->update($data);
+        if (!$materialER) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $materialER->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $materialER->fill($data);
+        $materialER->save();
+
+        return $materialER;
     }
 
     public function deleteMaterialExportReceipt($id): string

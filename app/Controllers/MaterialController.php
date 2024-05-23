@@ -128,26 +128,43 @@ class MaterialController
         return $material->importReceiptDetails;
     }
 
-    public function createMaterial(): Model
+    public function createMaterial(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $material = new Material();
-        $material->validate($data);
+        $error = $material->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $material->fill($data);
         $material->save();
         return $material;
     }
 
-    public function updateMaterialById($id): bool | int
+    public function updateMaterialById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $material = Material::find($id);
 
-        if ($material) {
-            $material->validate($data);
-            return $material->update($data);
+        if (!$material) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $material->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $material->fill($data);
+        $material->save();
+
+        return $material;
     }
 
     public function deleteMaterial($id): string

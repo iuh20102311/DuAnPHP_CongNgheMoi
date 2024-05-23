@@ -51,26 +51,43 @@ class ProfileController
         }
     }
 
-    public function createProfile(): Model
+    public function createProfile(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $profile = new Profile();
-        $profile->validate($data);
+        $error = $profile->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $profile->fill($data);
         $profile->save();
         return $profile;
     }
 
-    public function updateProfileById($id): bool | int
+    public function updateProfileById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $profile = Profile::find($id);
 
-        if ($profile) {
-            $profile->validate($data);
-            return $profile->update($data);
+        if (!$profile) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $profile->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $profile->fill($data);
+        $profile->save();
+
+        return $profile;
     }
 
     public function deleteProfile($id)

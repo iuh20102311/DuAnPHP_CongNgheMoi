@@ -44,26 +44,43 @@ class RoleController
         }
     }
 
-    public function createRole(): Model
+    public function createRole(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $role = new Role();
-        $role->validate($data);
+        $error = $role->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $role->fill($data);
         $role->save();
         return $role;
     }
 
-    public function updateRoleById($id): bool | int
+    public function updateRoleById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $role = Role::find($id);
 
-        if ($role) {
-            $role->validate($data);
-            return $role->update($data);
+        if (!$role) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $role->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $role->fill($data);
+        $role->save();
+
+        return $role;
     }
 
     public function deleteRole($id)

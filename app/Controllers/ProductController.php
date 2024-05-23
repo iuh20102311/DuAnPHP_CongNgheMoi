@@ -128,26 +128,43 @@ class ProductController
         return $product->inventories;
     }
 
-    public function createProduct(): Model
+    public function createProduct(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $product = new Product();
-        $product->validate($data);
+        $error = $product->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $product->fill($data);
         $product->save();
         return $product;
     }
 
-    public function updateProductById($id): bool | int
+    public function updateProductById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $product = Product::find($id);
 
-        if ($product) {
-            $product->validate($data);
-            return $product->update($data);
+        if (!$product) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $product->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $product->fill($data);
+        $product->save();
+
+        return $product;
     }
 
     public function deleteProduct($id)

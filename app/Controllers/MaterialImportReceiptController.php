@@ -74,26 +74,43 @@ class MaterialImportReceiptController
         return $materialIRDList;
     }
 
-    public function createMaterialImportReceipt(): Model
+    public function createMaterialImportReceipt(): Model | string
     {
         $data = json_decode(file_get_contents('php://input'), true);
         $materialIR = new MaterialImportReceipt();
-        $materialIR->validate($data);
+        $error = $materialIR->validate($data);
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
         $materialIR->fill($data);
         $materialIR->save();
         return $materialIR;
     }
 
-    public function updateMaterialImportReceiptById($id): bool | int
+    public function updateMaterialImportReceiptById($id): bool | int | string
     {
-        $data = json_decode(file_get_contents('php://input'), true);
         $materialIR = MaterialImportReceipt::find($id);
 
-        if ($materialIR) {
-            $materialIR->validate($data);
-            return $materialIR->update($data);
+        if (!$materialIR) {
+            http_response_code(404);
+            return json_encode(["error" => "Provider not found"]);
         }
-        return false;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $error = $materialIR->validate($data, true);
+
+        if ($error != "") {
+            http_response_code(404);
+            error_log($error);
+            return json_encode(["error" => $error]);
+        }
+
+        $materialIR->fill($data);
+        $materialIR->save();
+
+        return $materialIR;
     }
 
     public function deleteMaterialImportReceipt($id): string
