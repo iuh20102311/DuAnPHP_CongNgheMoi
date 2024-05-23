@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\Profile;
 use App\Models\Role;
 use App\Models\User;
 use Exception;
@@ -35,8 +36,14 @@ class UserController
             $role = Role::query()->where('id',$user->role_id)->first();
             unset($user->customer_id);
             unset($user->password);
+            unset($user->role_id);
             $user->role = $role;
+
+            $profile = Profile::query()->where('user_id', $user->id)->first();
+            $user->profile = $profile;
         }
+
+
         return $users;
     }
 
