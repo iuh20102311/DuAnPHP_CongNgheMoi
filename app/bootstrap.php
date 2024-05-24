@@ -133,6 +133,14 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
         $router->get('/', ['App\Controllers\MaterialController', 'getMaterials']);
     });
 
+    $router->group(array('prefix' => '/v1/material_inventories'), function (RouteCollector $router) {
+        $router->put('/{id}', ['App\Controllers\MaterialInventoryController', 'updateMaterialInventoryById']);
+        $router->delete('/{id}', ['App\Controllers\MaterialInventoryController', 'deleteMaterialInventory']);
+        $router->get('/{id}', ['App\Controllers\MaterialInventoryController', 'getMaterialInventoryById']);
+        $router->post('/', ['App\Controllers\MaterialInventoryController', 'createMaterialInventory']);
+        $router->get('/', ['App\Controllers\MaterialInventoryController', 'getMaterialInventories']);
+    });
+
     $router->group(array('prefix' => '/v1/providers'), function (RouteCollector $router) {
         $router->post('/{id}/materials', ['App\Controllers\ProviderController', 'addMaterialToProvider']);
         $router->get('/{id}/materials', ['App\Controllers\ProviderController', 'getMaterialByProvider']);

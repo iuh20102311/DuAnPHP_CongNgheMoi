@@ -23,6 +23,11 @@ class Warehouse extends Model
         return $this->hasMany(ProductInventory::class, 'warehouse_id');
     }
 
+    public function MaterialInventories()
+    {
+        return $this->hasMany(MaterialInventory::class,'warehouse_id');
+    }
+
     /**
      * @throws Exception
      */

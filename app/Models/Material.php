@@ -38,6 +38,11 @@ class Material extends Model
         return $this->hasMany(MaterialImportReceiptDetail::class, 'material_id');
     }
 
+    public function MaterialInventories()
+    {
+        return $this->hasMany(MaterialInventory::class,'material_id');
+    }
+
     /**
      * @throws Exception
      */

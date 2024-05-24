@@ -22,6 +22,11 @@ class Provider extends Model
         return $this->belongsToMany(Material::class, 'provider_materials');
     }
 
+    public function MaterialInventories()
+    {
+        return $this->hasMany(MaterialInventory::class, 'provider_id');
+    }
+
     /**
      * @throws Exception
      */
