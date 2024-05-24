@@ -109,10 +109,8 @@ class AuthController
             CURLOPT_CUSTOMREQUEST => 'GET',
         ]);
 
-        // Gửi yêu cầu và lấy phản hồi
         $response = curl_exec($curl);
 
-        // Kiểm tra lỗi nếu có
         if (curl_errno($curl)) {
             $error = curl_error($curl);
             curl_close($curl);
@@ -238,7 +236,6 @@ class AuthController
                 return json_encode(['error' => 'Người dùng không tồn tại'], JSON_UNESCAPED_UNICODE);
             }
 
-            // Lấy profile dựa trên user_id
             $profile = Profile::where('user_id', $userId)->first();
             if (!$profile) {
                 return json_encode(['error' => 'Profile không tồn tại cho user_id này'], JSON_UNESCAPED_UNICODE);

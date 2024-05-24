@@ -146,8 +146,8 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
     $router->group(array('prefix' => '/v1/material_export_receipts'), function (RouteCollector $router) {
         $router->get('/{id}/details', ['App\Controllers\MaterialExportReceiptController', 'getExportReceiptDetailsByExportReceipt']);
         $router->put('/{id}', ['App\Controllers\MaterialExportReceiptController', 'updateMaterialExportReceiptById']);
-        $router->get('/{id}', ['App\Controllers\MaterialExportReceiptController', 'getMaterialExportReceiptById']);
         $router->delete('/{id}', ['App\Controllers\MaterialExportReceiptController', 'deleteMaterialExportReceipt']);
+        $router->get('/{id}', ['App\Controllers\MaterialExportReceiptController', 'getMaterialExportReceiptById']);
         $router->post('/', ['App\Controllers\MaterialExportReceiptController', 'createMaterialExportReceipt']);
         $router->get('/', ['App\Controllers\MaterialExportReceiptController', 'getMaterialExportReceipts']);
     });

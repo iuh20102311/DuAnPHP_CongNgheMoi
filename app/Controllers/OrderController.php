@@ -83,7 +83,6 @@ class OrderController
         if (!$order) {
             return null;
         }
-
         $customer = Customer::query()->where('id', $order->customer_id)->first();
         $profile = Profile::query()->where('id', $order->created_by)->first();
         unset($order->customer_id, $order->created_by);
