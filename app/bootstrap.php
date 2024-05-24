@@ -52,6 +52,16 @@ $router->filter('auth', function () {
 });
 
 $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
+    $router->group(array('prefix' => '/v1/export'), function (RouteCollector $router) {
+        $router->post('/materials', ['App\Controllers\MaterialExportReceiptController', 'exportMaterials']);
+        $router->post('/products', ['App\Controllers\ProductExportReceiptController', 'exportProducts']);
+    });
+
+    $router->group(array('prefix' => '/v1/import'), function (RouteCollector $router) {
+        $router->post('/materials', ['App\Controllers\MaterialImportReceiptController', 'importMaterials']);
+        $router->post('/products', ['App\Controllers\ProductImportReceiptController', 'importProducts']);
+    });
+
     $router->group(array('prefix' => '/v1/auth'), function (RouteCollector $router) {
         $router->post('/changepassword', ['App\Controllers\AuthController', 'changePassword']);
         $router->post('/refreshtoken', ['App\Controllers\AuthController', 'refreshToken']);

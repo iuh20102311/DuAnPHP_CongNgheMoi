@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductExportReceipt;
+use App\Models\ProductInventory;
 use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -111,5 +112,68 @@ class ProductExportReceiptController
             http_response_code(404);
             return "Không tìm thấy";
         }
+    }
+
+    public function exportProducts()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        // Kiểm tra xem kho cần xuất kho có tồn tại trong bảng material_inventories hay không
+        $warehouseExists = ProductInventory::where('warehouse_id', $data['warehouse_id'])->exists();
+        if (!$warehouseExists) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Kho xuất kho không tồn tại']);
+            return;
+        }
+
+        // Tạo mới MaterialExportReceipt
+        $productExportReceipt = ProductExportReceipt::create([
+            'warehouse_id' => $data['warehouse_id'],
+            'status' => 'ACTIVE',
+            'note' => $data['note'] ?? '',
+        ]);
+
+        // Kiểm tra các nguyên vật liệu cần xuất kho (cho thấy dữ liệu vào từ PostMan)
+        $products = $data['products'] ?? [];
+        foreach ($products as $product) {
+            // Kiểm tra xem nguyên vật liệu có tồn tại trong bảng material_inventories hay không
+            $productExists = ProductInventory::where('product_id', $product['product_id'])
+                ->where('warehouse_id', $data['warehouse_id'])
+                ->exists();
+            if (!$productExists) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Sản phẩm không tồn tại trong kho']);
+                return;
+            }
+
+            // Kiểm tra xem số lượng nguyên vật liệu còn lại trong kho có đủ để xuất kho hay không
+            $productInventory = ProductInventory::where('product_id', $product['product_id'])
+                ->where('warehouse_id', $data['warehouse_id'])
+                ->first();
+            if ($productInventory->quantity_available < $product['quantity']) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Số lượng nguyên vật liệu trong kho không đủ để xuất kho']);
+                return;
+            }
+
+            // Tạo mới một MaterialExportReceiptDetail
+            $productExportReceiptDetail = $productExportReceipt->details()->create([
+                'product_id' => $product['product_id'],
+                'quantity' => $product['quantity'],
+            ]);
+
+            // Cập nhật số lượng nguyên vật liệu trong kho tương ứng
+            $productInventory->quantity_available -= $product['quantity'];
+            $productInventory->save();
+
+            // Cập nhật số lượng nguyên vật liệu trong bảng materials
+            $materialModel = Product::find($product['product_id']);
+            if ($materialModel) {
+                $materialModel->quantity -= $product['quantity'];
+                $materialModel->save();
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['message' => 'Xuất kho thành công', 'receipt_id' => $productExportReceipt->id]);
     }
 }

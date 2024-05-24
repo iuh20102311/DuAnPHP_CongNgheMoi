@@ -23,6 +23,11 @@ class ProductImportReceipt extends Model
         return $this->hasMany(ProductImportReceiptDetail::class, 'product_import_receipt_id');
     }
 
+    public function details()
+    {
+        return $this->hasMany(ProductImportReceiptDetail::class);
+    }
+
     /**
      * @throws Exception
      */

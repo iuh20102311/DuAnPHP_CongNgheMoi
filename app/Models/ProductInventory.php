@@ -15,7 +15,7 @@ class ProductInventory extends Model
 {
     use HasFactory;
     protected $table = 'product_inventories';
-    protected $fillable = ['product_id','warehouse_id','quantity_available','minimum_stock_level','status','created_at','updated_at'];
+    protected $fillable = ['product_id','warehouse_id','provider_id','quantity_available','minimum_stock_level','status','created_at','updated_at'];
     protected $primaryKey = 'id';
     public $timestamps = true;
 
@@ -28,6 +28,11 @@ class ProductInventory extends Model
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function provider(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 
     /**

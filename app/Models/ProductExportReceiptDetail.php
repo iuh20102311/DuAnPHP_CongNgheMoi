@@ -20,4 +20,14 @@ class ProductExportReceiptDetail extends Model
     {
         return $this->belongsTo(ProductExportReceipt::class, 'product_export_receipt_id');
     }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class,'product_id');
+    }
+
+    public function receipt()
+    {
+        return $this->belongsTo(ProductExportReceipt::class, 'product_export_receipt_id');
+    }
 }

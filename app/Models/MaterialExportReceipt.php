@@ -23,6 +23,11 @@ class MaterialExportReceipt extends Model
         return $this->hasMany(MaterialExportReceiptDetail::class, 'material_export_receipt_id');
     }
 
+    public function details()
+    {
+        return $this->hasMany(MaterialExportReceiptDetail::class,'material_export_receipt_id');
+    }
+
     /**
      * @throws Exception
      */

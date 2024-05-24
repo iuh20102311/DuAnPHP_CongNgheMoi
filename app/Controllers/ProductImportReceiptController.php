@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductImportReceipt;
+use App\Models\ProductInventory;
+use App\Models\Provider;
 use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -112,4 +114,72 @@ class ProductImportReceiptController
             return "Không tìm thấy";
         }
     }
+
+    public function importProducts()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $providerIds = array_unique(array_column($data['products'], 'provider_id'));
+        foreach ($providerIds as $providerId) {
+            $providerExists = Provider::where('id', $providerId)->exists();
+            if (!$providerExists) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Nhà cung cấp không tồn tại']);
+                return;
+            }
+        }
+
+        $warehouseExists = Warehouse::where('id', $data['warehouse_id'])->exists();
+        if (!$warehouseExists) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Kho nhập kho không tồn tại']);
+            return;
+        }
+
+        // Tạo mới một ProductImportReceipt
+        $productImportReceipt = ProductImportReceipt::create([
+            'warehouse_id' => $data['warehouse_id']
+        ]);
+
+        $products = $data['products'] ?? [];
+
+        $totalPrice = 0;
+
+        foreach ($products as $product) {
+            $productInventory = ProductInventory::where('product_id', $product['product_id'])
+                ->where('warehouse_id', $data['warehouse_id'])
+                ->first();
+
+            $productImportReceiptDetail = $productImportReceipt->details()->create([
+                'product_id' => $product['product_id'],
+                'quantity' => $product['quantity'],
+                'provider_id' => $product['provider_id'],
+            ]);
+
+            if ($productInventory) {
+                $productInventory->quantity_available += $product['quantity'];
+                $productInventory->minimum_stock_level = max($productInventory->minimum_stock_level, $product['minimum_stock_level']);
+                $productInventory->save();
+            } else {
+                ProductInventory::create([
+                    'provider_id' => $product['provider_id'],
+                    'product_id' => $product['product_id'],
+                    'warehouse_id' => $data['warehouse_id'],
+                    'quantity_available' => $product['quantity'],
+                    'minimum_stock_level' => $product['minimum_stock_level'],
+                ]);
+            }
+
+            // Cập nhật số lượng sản phẩm trong bảng products
+            $productModel = Product::find($product['product_id']);
+            if ($productModel) {
+                $productModel->quantity += $product['quantity'];
+                $productModel->save();
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['message' => 'Nhập kho thành công']);
+    }
+
 }

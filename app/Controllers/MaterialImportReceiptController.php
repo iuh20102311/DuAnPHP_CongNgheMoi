@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Models\Material;
 use App\Models\MaterialImportReceipt;
+use App\Models\MaterialInventory;
+use App\Models\Provider;
 use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -126,5 +128,81 @@ class MaterialImportReceiptController
             http_response_code(404);
             return "Không tìm thấy";
         }
+    }
+
+    public function importMaterials()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $providerIds = array_unique(array_column($data['materials'], 'provider_id'));
+        foreach ($providerIds as $providerId) {
+            $providerExists = Provider::where('id', $providerId)->exists();
+            if (!$providerExists) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Nhà cung cấp không tồn tại']);
+                return;
+            }
+        }
+
+        $warehouseExists = Warehouse::where('id', $data['warehouse_id'])->exists();
+        if (!$warehouseExists) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Kho nhập kho không tồn tại']);
+            return;
+        }
+
+        // Tạo mới một MaterialImportReceipt
+        $materialImportReceipt = MaterialImportReceipt::create([
+            'warehouse_id' => $data['warehouse_id']
+        ]);
+
+        $materials = $data['materials'] ?? [];
+        $totalPrice = 0;
+
+        foreach ($materials as $material) {
+            $materialInventory = MaterialInventory::where('material_id', $material['material_id'])
+                ->where('warehouse_id', $data['warehouse_id'])
+                ->first();
+
+            // Tính toán tổng giá cho từng chi tiết
+            $price = $material['price'];
+            $quantity = $material['quantity'];
+            $totalPrice += $price * $quantity;
+
+            $materialImportReceiptDetail = $materialImportReceipt->details()->create([
+                'material_id' => $material['material_id'],
+                'quantity' => $quantity,
+                'provider_id' => $material['provider_id'],
+                'price' => $price,
+            ]);
+
+            if ($materialInventory) {
+                $materialInventory->quantity_available += $quantity;
+                $materialInventory->minimum_stock_level = max($materialInventory->minimum_stock_level, $material['minimum_stock_level']);
+                $materialInventory->save();
+            } else {
+                MaterialInventory::create([
+                    'provider_id' => $material['provider_id'],
+                    'material_id' => $material['material_id'],
+                    'warehouse_id' => $data['warehouse_id'],
+                    'quantity_available' => $quantity,
+                    'minimum_stock_level' => $material['minimum_stock_level'],
+                ]);
+            }
+
+            // Cập nhật số lượng nguyên vật liệu trong bảng materials
+            $materialModel = Material::find($material['material_id']);
+            if ($materialModel) {
+                $materialModel->quantity += $quantity;
+                $materialModel->save();
+            }
+        }
+
+        // Cập nhật tổng giá trị vào material_import_receipt
+        $materialImportReceipt->total_price = $totalPrice;
+        $materialImportReceipt->save();
+
+        header('Content-Type: application/json');
+        echo json_encode(['message' => 'Nhập kho thành công']);
     }
 }

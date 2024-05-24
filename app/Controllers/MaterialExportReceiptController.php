@@ -5,9 +5,12 @@ namespace App\Controllers;
 use App\Models\Material;
 use App\Models\MaterialExportReceipt;
 use App\Models\MaterialExportReceiptDetail;
+use App\Models\MaterialInventory;
 use App\Models\Warehouse;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 class MaterialExportReceiptController
 {
@@ -108,4 +111,68 @@ class MaterialExportReceiptController
             return "Không tìm thấy";
         }
     }
+
+    public function exportMaterials()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        // Kiểm tra xem kho cần xuất kho có tồn tại trong bảng material_inventories hay không
+        $warehouseExists = MaterialInventory::where('warehouse_id', $data['warehouse_id'])->exists();
+        if (!$warehouseExists) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Kho xuất kho không tồn tại']);
+            return;
+        }
+
+        // Tạo mới MaterialExportReceipt
+        $materialExportReceipt = MaterialExportReceipt::create([
+            'warehouse_id' => $data['warehouse_id'],
+            'status' => 'ACTIVE', // Hoặc trạng thái mặc định phù hợp với hệ thống của bạn
+            'note' => $data['note'] ?? '', // Thêm ghi chú nếu có
+        ]);
+
+        // Kiểm tra các nguyên vật liệu cần xuất kho
+        $materials = $data['materials'] ?? [];
+        foreach ($materials as $material) {
+            // Kiểm tra xem nguyên vật liệu có tồn tại trong bảng material_inventories hay không
+            $materialExists = MaterialInventory::where('material_id', $material['material_id'])
+                ->where('warehouse_id', $data['warehouse_id'])
+                ->exists();
+            if (!$materialExists) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Nguyên vật liệu không tồn tại trong kho']);
+                return;
+            }
+
+            // Kiểm tra xem số lượng nguyên vật liệu còn lại trong kho có đủ để xuất kho hay không
+            $materialInventory = MaterialInventory::where('material_id', $material['material_id'])
+                ->where('warehouse_id', $data['warehouse_id'])
+                ->first();
+            if ($materialInventory->quantity_available < $material['quantity']) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Số lượng nguyên vật liệu trong kho không đủ để xuất kho']);
+                return;
+            }
+
+            // Tạo mới một MaterialExportReceiptDetail
+            $materialExportReceiptDetail = $materialExportReceipt->details()->create([
+                'material_id' => $material['material_id'],
+                'quantity' => $material['quantity'],
+            ]);
+
+            // Cập nhật số lượng nguyên vật liệu trong kho tương ứng
+            $materialInventory->quantity_available -= $material['quantity'];
+            $materialInventory->save();
+
+            // Cập nhật số lượng nguyên vật liệu trong bảng materials
+            $materialModel = Material::find($material['material_id']);
+            if ($materialModel) {
+                $materialModel->quantity -= $material['quantity'];
+                $materialModel->save();
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['message' => 'Xuất kho thành công', 'receipt_id' => $materialExportReceipt->id]);
+    }
+
 }
