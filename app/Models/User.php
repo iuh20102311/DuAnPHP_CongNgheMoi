@@ -39,11 +39,12 @@ class User extends Model
     /**
      * @throws Exception
      */
-    public function validate(array $data, bool $isUpdate = false) : string
+    public function validate(array $data, bool $isUpdate = false): string
     {
         $validators = [
             'email' => v::notEmpty()->email()->setName('email')->setTemplate('Email không được rỗng và phải hợp lệ'),
             'password' => v::notEmpty()->setName('password')->setTemplate('Password không được rỗng'),
+            'name' => v::notEmpty()->regex('/^[\p{Lu}\p{Ll}\sàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêềếểễệđìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳỹỷỵ]+\s[\p{Lu}\p{Ll}\sàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêềếểễệđìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳỹỷỵ]+\s[\p{Lu}\p{Ll}\sàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêềếểễệđìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳỹỷỵ]+$/u', 'Tên phải viết theo dạng "Họ Tên" và cho phép viết chữ có dấu')->setName('name')->setTemplate('Tên không được rỗng và phải là ký tự chữ cái và khoảng trắng'),
         ];
 
         $error = "";

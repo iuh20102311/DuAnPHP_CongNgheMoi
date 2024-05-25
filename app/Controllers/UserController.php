@@ -49,8 +49,6 @@ class UserController
             $profile = Profile::query()->where('user_id', $user->id)->first();
             $user->profile = $profile;
         }
-
-
         return $users;
     }
 
@@ -111,9 +109,7 @@ class UserController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
-
         unset($user->password);
-
         $error = $user->validate($data, true);
 
         if ($error != "") {
@@ -125,29 +121,9 @@ class UserController
         foreach ($data as $key => $value) {
             $user->$key = $value;
         }
-
         $user->save();
-
         return $user;
     }
-
-//    public function deleteUser($id)
-//    {
-//        $user = User::find($id);
-//        if (!$user) {
-//            http_response_code(404);
-//            echo json_encode(['error' => 'User not found']);
-//        }
-//
-//        $user->status = 'DELETED';
-//        $user->save();
-//        if ($user->profile) {
-//            $user->profile->status = 'DELETED';
-//            $user->profile->save();
-//            return "Xóa thành công";
-//        }
-//        return $user;
-//    }
 
     public function deleteUser($id)
     {
@@ -187,7 +163,6 @@ class UserController
                 return;
             }
 
-            // Lấy role của người dùng hiện tại
             $role = Role::find($currentUser->role_id);
             error_log($role);
             if ($role && $role->name === 'SUPER_ADMIN') {
@@ -198,7 +173,6 @@ class UserController
                     return;
                 }
 
-                // Thay đổi trạng thái của người dùng và hồ sơ
                 $userToDelete->status = 'DELETED';
                 $userToDelete->save();
 

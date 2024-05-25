@@ -2,7 +2,6 @@
 
 namespace App\Controllers;
 
-use Dotenv\Dotenv;
 use App\DTO\LoginResponseDTO;
 use App\Models\Role;
 use App\Models\Session;
@@ -11,8 +10,6 @@ use App\Models\Profile;
 use App\Utils\TokenGenerator;
 use DateTimeImmutable;
 use Exception;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\QueryException;
 use Lcobucci\JWT\Encoding\CannotDecodeContent;
 use Lcobucci\JWT\Encoding\JoseEncoder;
 use Lcobucci\JWT\Token\InvalidTokenStructure;
@@ -132,6 +129,20 @@ class AuthController
         try {
             $data = json_decode(file_get_contents('php://input'), true);
 
+            $user = new User();
+            $error = $user->validate($data);
+            if (!empty($error)) {
+                http_response_code(400);
+                echo json_encode(['error' => $error]);
+                return;
+            }
+
+            if (substr($data['email'], -10) !== '@gmail.com') {
+                http_response_code(400);
+                echo json_encode(['error' => 'Email phải kết thúc bằng @gmail.com']);
+                return;
+            }
+
             if (!isset($data['email']) || !isset($data['password'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Email and password are required']);
@@ -142,19 +153,28 @@ class AuthController
             $emailToCheck = urlencode($data['email']);
             $apiUrl = "https://emailvalidation.abstractapi.com/v1/?api_key=$apiKey&email=$emailToCheck";
 
+            // Initialize cURL.
             $ch = curl_init();
+
+            // Set the URL that you want to GET by using the CURLOPT_URL option.
             curl_setopt($ch, CURLOPT_URL, $apiUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            $response = curl_exec($ch);
-            if (curl_errno($ch)) {
-                http_response_code(500);
-                echo json_encode(['error' => 'Error connecting to email validation service']);
-                return;
-            }
+
+            // Set CURLOPT_RETURNTRANSFER so that the content is returned as a variable.
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+            // Set CURLOPT_FOLLOWLOCATION to true to follow redirects.
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
+            // Execute the request.
+            $dataNew = curl_exec($ch);
+
+            // Close the cURL handle.
             curl_close($ch);
 
-            $responseData = json_decode($response, true);
-            if (!$responseData || !isset($responseData['is_valid_format']['value']) || !$responseData['is_valid_format']['value']) {
+            // Print the data out onto the page.
+            $responseData = json_decode($dataNew, true);
+
+            if ($responseData['deliverability'] === 'UNDELIVERABLE') {
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid or non-existent email']);
                 return;
@@ -163,7 +183,6 @@ class AuthController
             $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
             $data['role_id'] = $data['role_id'] ?? 1;
 
-            // Check if the role exists
             $role = Role::find($data['role_id']);
             if (!$role) {
                 http_response_code(400);
@@ -171,7 +190,6 @@ class AuthController
                 return;
             }
 
-            // Create a new user
             $createdUser = User::create([
                 'email' => $data['email'],
                 'password' => $hashedPassword,
