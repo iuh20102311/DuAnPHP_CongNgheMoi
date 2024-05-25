@@ -15,7 +15,7 @@ class User extends Model
 {
     use HasFactory;
     protected $table = 'users';
-    protected $fillable = ['role_id','email','email_verified_at','password','remember_token','status','created_at','updated_at'];
+    protected $fillable = ['role_id','email','email_verified_at','password','reset_password_token','status','created_at','updated_at'];
     protected $primaryKey = 'id';
     public $timestamps = true;
 

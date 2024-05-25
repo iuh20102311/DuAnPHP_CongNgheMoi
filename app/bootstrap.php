@@ -64,6 +64,9 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
 
     $router->group(array('prefix' => '/v1/auth'), function (RouteCollector $router) {
         $router->post('/changepassword', ['App\Controllers\AuthController', 'changePassword']);
+        $router->post('/forgotpassword', ['App\Controllers\AuthController', 'forgotPassword']);
+        $router->get('/reset_password', ['App\Controllers\AuthController', 'checkToken']);
+        $router->post('/reset_password', ['App\Controllers\AuthController', 'resetPassword']);
         $router->post('/refreshtoken', ['App\Controllers\AuthController', 'refreshToken']);
         $router->get('/profile', ['App\Controllers\AuthController', 'getProfile']);
         $router->post('/register', ['App\Controllers\AuthController', 'register']);

@@ -69,6 +69,9 @@
       <path value="$PROJECT_DIR$/vendor/lcobucci/jwt" />
       <path value="$PROJECT_DIR$/vendor/respect/stringifier" />
       <path value="$PROJECT_DIR$/vendor/respect/validation" />
+      <path value="$PROJECT_DIR$/vendor/PHPMailer/language" />
+      <path value="$PROJECT_DIR$/vendor/PHPMailer/src" />
+      <path value="$PROJECT_DIR$/vendor/PHPMailer/phpmailer" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />

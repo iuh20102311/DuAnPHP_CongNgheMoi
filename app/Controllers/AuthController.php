@@ -19,9 +19,8 @@ use Lcobucci\JWT\Token\InvalidTokenStructure;
 use Lcobucci\JWT\Token\Plain;
 use Lcobucci\JWT\Token\UnsupportedHeaderFound;
 use Lcobucci\JWT\Token\Parser;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyEmail;
-
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 class AuthController
 {
@@ -139,23 +138,40 @@ class AuthController
                 return;
             }
 
-            $zeroBounceApiKey = '3a8a2ee7fe574fc583f54857c8e0e2d9';
-            $emailToCheck = $data['email'];
-            $apiUrl = "https://api.zerobounce.net/v2/validate?api_key=$zeroBounceApiKey&email=$emailToCheck";
-            $response = file_get_contents($apiUrl);
-            $responseData = json_decode($response, true);
+            $apiKey = '309a54ab876145c988eef7d25a830a1d';
+            $emailToCheck = urlencode($data['email']);
+            $apiUrl = "https://emailvalidation.abstractapi.com/v1/?api_key=$apiKey&email=$emailToCheck";
 
-            if (!$responseData || !isset($responseData['status']) || $responseData['status'] !== 'valid') {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $apiUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            $response = curl_exec($ch);
+            if (curl_errno($ch)) {
+                http_response_code(500);
+                echo json_encode(['error' => 'Error connecting to email validation service']);
+                return;
+            }
+            curl_close($ch);
+
+            $responseData = json_decode($response, true);
+            if (!$responseData || !isset($responseData['is_valid_format']['value']) || !$responseData['is_valid_format']['value']) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid or non-existent email']);
                 return;
             }
 
-            // Mã hóa mật khẩu
             $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
             $data['role_id'] = $data['role_id'] ?? 1;
 
-            // Tạo người dùng mới
+            // Check if the role exists
+            $role = Role::find($data['role_id']);
+            if (!$role) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid role ID']);
+                return;
+            }
+
+            // Create a new user
             $createdUser = User::create([
                 'email' => $data['email'],
                 'password' => $hashedPassword,
@@ -171,10 +187,10 @@ class AuthController
                 'user_id' => $createdUser->id,
                 'first_name' => $firstName,
                 'last_name' => $lastName,
-                'phone' => null,
-                'birthday' => null,
-                'avatar' => null,
-                'gender' => null
+                'phone' => $data['phone'] ?? null,
+                'birthday' => $data['birthday'] ?? null,
+                'avatar' => $data['avatar'] ?? null,
+                'gender' => $data['gender'] ?? null
             ];
 
             Profile::create($profileData);
@@ -187,8 +203,6 @@ class AuthController
             echo json_encode(['error' => 'Error registering user: ' . $e->getMessage()]);
         }
     }
-
-
 
     public function changePassword(): string
     {
@@ -260,4 +274,138 @@ class AuthController
         }
     }
 
+    public function forgotPassword()
+    {
+        // Get the input data from POST request
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        // Check if the email is provided
+        if (!isset($data['email'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Email is required']);
+            return;
+        }
+
+        $email = $data['email'];
+
+        // Validate the email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid email format']);
+            return;
+        }
+
+        // Look up the user in the database
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            http_response_code(404);
+            echo json_encode(['error' => 'User not found']);
+            return;
+        }
+
+        // Generate a unique token for the password reset
+        $resetToken = bin2hex(random_bytes(16));
+        $resetLink = "http://localhost:8000/api/v1/auth/reset_password?token=$resetToken";
+
+        // Save the token to the database associated with the user
+        $user->reset_password_token = $resetToken;
+        $user->token_expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        $user->save();
+
+        // Send the reset link via email
+        $mail = new PHPMailer(true);
+
+        try {
+            // Server settings
+            $mail->SMTPDebug = 2;
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true; // Enable SMTP authentication
+            $mail->Username   = 'thiennguyen130922@gmail.com';
+            $mail->Password   = 'ncsnqehejhsxiugt'; // Use the app password here
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+
+            // Recipients
+            $mail->setFrom('thiennguyen130922@gmail.com', 'Your App Name');
+            $mail->addAddress($email);
+
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = 'Password Reset Request';
+            $mail->Body    = "Click <a href='$resetLink'>here</a> to reset your password. This link will expire in 1 hour.";
+            $mail->AltBody = "Copy and paste the following link in your browser to reset your password: $resetLink";
+
+            $mail->send();
+            http_response_code(200);
+            echo json_encode(['message' => 'Password reset link has been sent to your email address']);
+        } catch (PHPMailerException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Mailer Error: ' . $mail->ErrorInfo]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'General error: ' . $e->getMessage()]);
+        }
+    }
+
+    public function resetPassword()
+    {
+        // Get the input data from POST request
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        // Check if the token and new password are provided
+        if (!isset($data['token']) || !isset($data['password'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Token and password are required']);
+            return;
+        }
+
+        $token = $data['token'];
+        $newPassword = $data['password'];
+
+        // Look up the user in the database by the reset token
+        $user = User::where('reset_password_token', $token)
+            ->where('token_expiry', '>', date('Y-m-d H:i:s'))
+            ->first();
+
+        if (!$user) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid or expired token']);
+            return;
+        }
+
+        // Update the user's password
+        $user->password = password_hash($newPassword, PASSWORD_DEFAULT);
+        $user->reset_password_token = null;
+        $user->token_expiry = null;
+        $user->save();
+
+        http_response_code(200);
+        echo json_encode(['message' => 'Password has been reset successfully']);
+    }
+
+    public function checkToken()
+    {
+        if (!isset($_GET['token'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Token and password are required']);
+            return;
+        }
+
+        $token = $_GET['token'];
+
+        // Look up the user in the database by the reset token
+        $user = User::where('reset_password_token', $token)
+            ->where('token_expiry', '>', date('Y-m-d H:i:s'))
+            ->first();
+
+        if (!$user) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid or expired token']);
+            return;
+        }
+
+        http_response_code(200);
+        echo json_encode(['message' => $token]);
+    }
 }

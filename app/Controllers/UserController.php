@@ -160,6 +160,14 @@ class UserController
             return;
         }
 
+        // Kiểm tra cấu trúc chuỗi JWT
+        $tokenParts = explode('.', $token);
+        if (count($tokenParts) !== 3) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Token không hợp lệ'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
         try {
             $parser = new Parser(new JoseEncoder());
             $parsedToken = $parser->parse($token);

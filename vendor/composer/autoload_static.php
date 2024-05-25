@@ -74,6 +74,7 @@ class ComposerStaticInit91e2f62bdcf52ecaf79c2c5c8fd41a98
             'Propel\\' => 7,
             'Phroute\\Phroute\\' => 16,
             'PhpOption\\' => 10,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'L' => 
         array (
@@ -262,6 +263,10 @@ class ComposerStaticInit91e2f62bdcf52ecaf79c2c5c8fd41a98
         'PhpOption\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'Lcobucci\\JWT\\' => 
         array (
