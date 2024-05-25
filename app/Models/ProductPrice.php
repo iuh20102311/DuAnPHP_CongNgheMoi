@@ -25,8 +25,8 @@ class ProductPrice extends Model
     {
         $validators = [
             'product_id' => v::notEmpty()->setName('product_id')->setTemplate('Khách hàng không được rỗng'),
-            'price' => v::notEmpty()->setName('price')->setTemplate('Gía tền không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
+            'price' => v::notEmpty()->numericVal()->positive()->setName('price')->setTemplate('Gía tiền không hợp lệ. Gía tiền không được trống và phải là số dương.'),
+            'status' => v::notEmpty()->in(['ACTIVE', 'DELETED'])->setName('status')->setTemplate('Trạng thái không hợp lệ. Trạng thái chỉ có thể là ACTIVE hoặc DELETED.'),
         ];
 
         $error = "";

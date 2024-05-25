@@ -137,12 +137,6 @@ class AuthController
                 return;
             }
 
-            if (substr($data['email'], -10) !== '@gmail.com') {
-                http_response_code(400);
-                echo json_encode(['error' => 'Email phải kết thúc bằng @gmail.com']);
-                return;
-            }
-
             if (!isset($data['email']) || !isset($data['password'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Email and password are required']);

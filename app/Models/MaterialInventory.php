@@ -44,9 +44,9 @@ class MaterialInventory extends Model
             'provider_id' => v::notEmpty()->setName('product_id')->setTemplate('Nhà cung cấp không được rỗng'),
             'material_id' => v::notEmpty()->setName('product_id')->setTemplate('Nguyên liệu không được rỗng'),
             'warehouse_id' => v::notEmpty()->setName('warehouse_id')->setTemplate('Nhà kho không được rỗng'),
-            'quantity_available' => v::notEmpty()->setName('quantity_available')->setTemplate('Số lượng hiện có không được rỗng'),
-            'minimum_stock_level' => v::notEmpty()->setName('minimum_stock_level')->setTemplate('Mức tồn kho tối thiểu không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
+            'status' => v::notEmpty()->in(['ACTIVE', 'DELETED'])->setName('status')->setTemplate('Trạng thái không hợp lệ. Trạng thái chỉ có thể là ACTIVE hoặc DELETED.'),
+            'quantity_available' => v::notEmpty()->numericVal()->positive()->setName('quantity_available')->setTemplate('Số lượng hiện có không hợp lệ. Số lượng hiện có không được trống và phải là số dương.'),
+            'minimum_stock_level' => v::notEmpty()->numericVal()->positive()->setName('minimum_stock_level')->setTemplate('Mức tồn kho tối thiểu không hợp lệ. Mức tồn kho tối thiểu không được trống và phải là số dương.'),
         ];
 
         $error = "";

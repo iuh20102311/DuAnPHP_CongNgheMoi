@@ -35,9 +35,9 @@ class MaterialImportReceipt extends Model
     {
         $validators = [
             'warehouse_id' => v::notEmpty()->setName('group_customer_id')->setTemplate('Nhà kho không được rỗng'),
-            'total_price' => v::notEmpty()->setName('total_price')->setTemplate('Tổng tiền không được rỗng'),
-            'type' => v::notEmpty()->setName('type')->setTemplate(';Loại hóa đơn không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
+            'type' => v::notEmpty()->in(['PRODUCT', 'MATERIAL'])->setName('type')->setTemplate('Loại không hợp lệ. Loại chỉ có thể là PRODUCT hoặc MATERIAL.'),
+            'total_price' => v::notEmpty()->numericVal()->positive()->setName('total_price')->setTemplate('Tổng tiền không hợp lệ. Tổng tiền không được trống và phải là số dương.'),
+            'status' => v::notEmpty()->in(['ACTIVE', 'DELETED'])->setName('status')->setTemplate('Trạng thái không hợp lệ. Trạng thái chỉ có thể là ACTIVE hoặc DELETED.'),
         ];
 
         $error = "";

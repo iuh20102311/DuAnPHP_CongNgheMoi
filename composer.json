@@ -7,7 +7,7 @@
     "illuminate/database": "v9.0.0",
     "illuminate/http": "v9.0.0",
     "lcobucci/jwt": "4.0.0",
-    "respect/validation": "^2.1",
+    "respect/validation" : "2.3.7" ,
     "ext-curl": "*",
     "phpmailer/phpmailer": "^6.9"
   },

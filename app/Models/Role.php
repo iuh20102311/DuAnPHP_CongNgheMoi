@@ -30,8 +30,8 @@ class Role extends Model
     public function validate(array $data, bool $isUpdate = false) : string
     {
         $validators = [
-            'name' => v::notEmpty()->setName('name')->setTemplate('Tên không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
+            'name' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('name')->setTemplate('Tên không hợp lệ. Tên phải viết hoa chữ cái đầu tiên của mỗi từ và chỉ chứa chữ cái.'),
+            'status' => v::in(['ACTIVE', 'DELETED'])->setName('status')->setTemplate('Trạng thái không hợp lệ. Trạng thái chỉ có thể là ACTIVE hoặc DELETED.'),
         ];
 
         $error = "";

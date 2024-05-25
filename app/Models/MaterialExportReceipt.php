@@ -35,8 +35,8 @@ class MaterialExportReceipt extends Model
     {
         $validators = [
             'warehouse_id' => v::notEmpty()->setName('warehouse_id')->setTemplate('Nhà kho không được rỗng'),
-            'type' => v::notEmpty()->setName('type')->setTemplate('Loại hóa đơn không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
+            'type' => v::in(['NORMAL', 'RETURN'])->setName('type')->setTemplate('Loại không hợp lệ. Loại chỉ có thể là PRODUCT hoặc MATERIAL.'),
+            'status' => v::in(['ACTIVE', 'DELETED'])->setName('status')->setTemplate('Trạng thái không hợp lệ. Trạng thái chỉ có thể là ACTIVE hoặc DELETED.'),
         ];
 
         $error = "";

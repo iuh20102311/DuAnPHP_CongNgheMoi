@@ -33,14 +33,14 @@ class Provider extends Model
     public function validate(array $data, bool $isUpdate = false) : string
     {
         $validators = [
-            'name' => v::notEmpty()->setName('name')->setTemplate('Tên không được rỗng'),
-            'phone' => v::notEmpty()->setName('phone')->setTemplate('Số điện thoại không được rỗng'),
-            'email' => v::notEmpty()->setName('email')->setTemplate('Email không được rỗng'),
-            'address' => v::notEmpty()->setName('address')->setTemplate('Địa chỉ không được rỗng'),
-            'city' => v::notEmpty()->setName('city')->setTemplate('Thành phố không được rỗng'),
-            'district' => v::notEmpty()->setName('district')->setTemplate('Đường không được rỗng'),
-            'ward' => v::notEmpty()->setName('ward')->setTemplate('Phường không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
+            'name' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('name')->setTemplate('Tên không hợp lệ. Tên phải viết hoa chữ cái đầu tiên của mỗi từ và chỉ chứa chữ cái.'),
+            'phone' => v::digit()->length(10, 10)->startsWith('0')->setName('phone')->setTemplate('Số điện thoại không được rỗng, phải có 10 chữ số, bắt đầu bằng số 0 và chỉ chứa các chữ số.'),
+            'email' => v::notEmpty()->email()->endsWith('@gmail.com')->setName('email')->setTemplate('Email không được rỗng, phải hợp lệ và phải có phần cuối là @gmail.com'),
+            'address' => v::notEmpty()->regex('/^[\p{L}\p{M}\d\s\/]+$/u')->setName('address')->setTemplate('Địa chỉ không hợp lệ. Địa chỉ phải chứa chữ, số và ký tự /.'),
+            'city' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('city')->setTemplate('Thành phố không hợp lệ. Thành phố phải viết hoa chữ cái đầu tiên của mỗi từ và chỉ chứa chữ cái.'),
+            'district' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('district')->setTemplate('Tên quận/huyện không hợp lệ. Tên quận/huyện phải viết hoa chữ cái đầu tiên của mỗi từ và chỉ chứa chữ cái.'),
+            'ward' => v::notEmpty()->regex('/^(?=.*[\p{L}\p{M}])(?=.*\d)([\p{L}\p{M}]+\s*)*?([\p{L}\p{M}]*\d+)?$/u')->setName('ward')->setTemplate('Phường không hợp lệ. Phường phải chứa chữ và số, và mỗi từ phải viết hoa chữ cái đầu tiên.'),
+            'status' => v::notEmpty()->in(['ACTIVE', 'DELETED'])->setName('status')->setTemplate('Trạng thái không hợp lệ. Trạng thái chỉ có thể là ACTIVE hoặc DELETED.'),
         ];
 
         $error = "";

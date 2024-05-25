@@ -33,11 +33,11 @@ class Discount extends Model
     public function validate(array $data, bool $isUpdate = false) : string
     {
         $validators = [
-            'coupon_code' => v::notEmpty()->setName('coupon_code')->setTemplate(',Mã giảm giá không được rỗng'),
-            'discount_value' => v::notEmpty()->setName('discount_value')->setTemplate('Gía trị mã giảm giá không được rỗng'),
+            'coupon_code' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('coupon_code')->setTemplate('Mã giảm giá rỗng hoặc không hợp lệ'),
+            'discount_value' => v::notEmpty()->numericVal()()->positive()->setName('discount_value')->setTemplate('Gía trị mã giảm giá không được rỗng. Gía trị mã giảm giá phải là số dương.'),
             'discount_unit' => v::notEmpty()->setName('discount_unit')->setTemplate('Đơn vị giảm giá không được rỗng'),
-            'minimum_order_value' => v::notEmpty()->setName('minimum_order_value')->setTemplate('Gía trị đơn hàng thấp nhất không được rỗng'),
-            'maximum_order_value' => v::notEmpty()->setName('maximum_order_value')->setTemplate('Gía trị đơn hàng lớn nhất không được rỗng'),
+            'minimum_order_value' => v::notEmpty()->numericVal()->positive()->setName('minimum_order_value')->setTemplate('Gía trị đơn hàng thấp nhất không được rỗng. Gía trị đơn hàng thấp nhất phải là số dương.'),
+            'maximum_order_value' => v::notEmpty()->numericVal()->positive()->setName('maximum_order_value')->setTemplate('Gía trị đơn hàng lớn nhất không được rỗng. Gía trị đơn hàng lớn nhất phải là số dương.'),
         ];
 
         $error = "";

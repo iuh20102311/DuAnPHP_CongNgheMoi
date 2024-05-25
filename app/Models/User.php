@@ -42,9 +42,9 @@ class User extends Model
     public function validate(array $data, bool $isUpdate = false): string
     {
         $validators = [
-            'email' => v::notEmpty()->email()->setName('email')->setTemplate('Email không được rỗng và phải hợp lệ'),
+            'email' => v::notEmpty()->email()->endsWith('@gmail.com')->setName('email')->setTemplate('Email không được rỗng, phải hợp lệ và phải có phần cuối là @gmail.com'),
             'password' => v::notEmpty()->setName('password')->setTemplate('Password không được rỗng'),
-            'name' => v::notEmpty()->regex('/^[\p{Lu}\p{Ll}\sàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêềếểễệđìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳỹỷỵ]+\s[\p{Lu}\p{Ll}\sàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêềếểễệđìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳỹỷỵ]+\s[\p{Lu}\p{Ll}\sàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêềếểễệđìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳỹỷỵ]+$/u', 'Tên phải viết theo dạng "Họ Tên" và cho phép viết chữ có dấu')->setName('name')->setTemplate('Tên không được rỗng và phải là ký tự chữ cái và khoảng trắng'),
+            'name' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('name')->setTemplate('Tên không hợp lệ. Tên phải viết hoa chữ cái đầu tiên của mỗi từ và chỉ chứa chữ cái.'),
         ];
 
         $error = "";

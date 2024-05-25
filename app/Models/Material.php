@@ -49,12 +49,12 @@ class Material extends Model
     public function validate(array $data, bool $isUpdate = false) : string
     {
         $validators = [
-            'name' => v::notEmpty()->setName('name')->setTemplate('Tên không được rỗng'),
-            'unit' => v::notEmpty()->setName('unit')->setTemplate('Đơn vị không được rỗng'),
-            'weight' => v::notEmpty()->setName('weight')->setTemplate('Khối lượng không được rỗng'),
-            'origin' => v::notEmpty()->setName('origin')->setTemplate('Nguồn xuất xứ không được rỗng'),
-            'quantity' => v::notEmpty()->setName('quantity')->setTemplate('Số lượng không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
+            'name' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('name')->setTemplate('Tên không hợp lệ. Tên phải viết hoa chữ cái đầu tiên của mỗi từ và chỉ chứa chữ cái.'),
+            'unit' => v::notEmpty()->regex('/^\p{Lu}\p{Ll}*$/u')->setName('unit')->setTemplate('Đơn vị không hợp lệ. Đơn vị không được để trống và viết hoa chữ cái đầu'),
+            'origin' => v::notEmpty()->regex('/^(\p{Lu}\p{Ll}+)(?:\s+\p{Lu}\p{Ll}+)*$/u')->setName('origin')->setTemplate('Xuất xứ không hợp lệ. Xuất xứ không được để trống và viết hoa chữ cái đầu.'),
+            'status' => v::notEmpty()->in(['IN_STOCK','OUT_OF_STOCK','TEMPORARILY_SUSP', 'DELETED'])->setName('status')->setTemplate('Trạng thái không hợp lệ. Trạng thái chỉ có thể là ACTIVE hoặc DELETED.'),
+            'weight' => v::notEmpty()->numericVal()->positive()->setName('weight')->setTemplate('Khối lượng không hợp lệ. Khối lượng không được để trống và phải là số không âm.'),
+            'quantity' => v::notEmpty()->numericVal()->positive()->setName('quantity')->setTemplate('Số lượng không hợp lệ. Số lượng không được trống và phải là số dương.'),
         ];
 
         $error = "";

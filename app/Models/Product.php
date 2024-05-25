@@ -59,15 +59,14 @@ class Product extends Model
     public function validate(array $data, bool $isUpdate = false) : string
     {
         $validators = [
-            'sku' => v::notEmpty()->setName('sku')->setTemplate('Mã hàng hóa không được rỗng'),
-            'name' => v::notEmpty()->setName('name')->setTemplate('Tên không được rỗng'),
-            'packing' => v::notEmpty()->setName('packing')->setTemplate('Loại vật chứa không được rỗng'),
-            'price' => v::notEmpty()->setName('price')->setTemplate('Gía cả không được rỗng'),
-            'quantity' => v::notEmpty()->setName('quantity')->setTemplate('Số lượng không được rỗng'),
-            'weight' => v::notEmpty()->setName('weight')->setTemplate('Khối lượng không được rỗng'),
+            'sku' => v::notEmpty()->regex('/^[A-Z\d]+$/')->setName('sku')->setTemplate('Mã sản phẩm không hợp lệ. Mã sản phẩm không được để trống và viết hoa tất cả.'),
+            'name' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('name')->setTemplate('Tên không hợp lệ. Tên phải viết hoa chữ cái đầu tiên của mỗi từ và chỉ chứa chữ cái.'),
+            'packing' => v::notEmpty()->regex('/^(\p{Lu}\p{Ll}+)(?:\s+\p{Lu}\p{Ll}+)*$/u')->setName('packing')->setTemplate('Loại vật chứa không hợp lệ. Loại vật chứa không được để trống và viết hoa chữ cái đầu.'),
+            'price' => v::notEmpty()->numericVal()->positive()->setName('price')->setTemplate('Gía cả không hợp lệ. Gía cả không được trống và phải là số dương.'),
+            'quantity' => v::notEmpty()->numericVal()->positive()->setName('quantity')->setTemplate('Số lượng không hợp lệ. Số lượng không được trống và phải là số dương.'),
+            'weight' => v::notEmpty()->numericVal()->positive()->setName('weight')->setTemplate('Khối lương không hợp lệ. Khối lương không được trống và phải là số dương.'),
             'image' => v::notEmpty()->setName('image')->setTemplate('Hình ảnh không được rỗng'),
-            //'description' => v::notEmpty()->setName('district')->setTemplate('Đường không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
+            'status' => v::notEmpty()->in(['ACTIVE', 'DELETED'])->setName('status')->setTemplate('Trạng thái không hợp lệ. Trạng thái chỉ có thể là ACTIVE hoặc DELETED.'),
         ];
 
         $error = "";

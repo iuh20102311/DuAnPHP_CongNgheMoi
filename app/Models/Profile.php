@@ -24,10 +24,10 @@ class Profile extends Model
     {
         $validators = [
             'user_id' => v::notEmpty()->setName('user_id')->setTemplate('Người dùng không được rỗng'),
-            'first_name' => v::notEmpty()->setName('first_name')->setTemplate('Tên lót không được rỗng'),
-            'last_name' => v::notEmpty()->setName('last_name')->setTemplate('Tên không được rỗng'),
-            'phone' => v::notEmpty()->setName('phone')->setTemplate('Số điện thoại không được rỗng'),
-            'gender' => v::notEmpty()->setName('gender')->setTemplate('Giới tính không được rỗng'),
+            'first_name' => v::notEmpty()->regex('/^(\p{Lu}\p{Ll}+)(?:\s+\p{Lu}\p{Ll}+)*$/u')->setName('first_name')->setTemplate('Tên lót không hợp lệ. Tên lót không được để trống và viết hoa chữ cái đầu.'),
+            'last_name' => v::notEmpty()->regex('/^(\p{Lu}\p{Ll}+)(?:\s+\p{Lu}\p{Ll}+)*$/u')->setName('last_name')->setTemplate('Tên không hợp lệ. Tên không được để trống và viết hoa chữ cái đầu.'),
+            'phone' => v::digit()->length(10, 10)->startsWith('0')->setName('phone')->setTemplate('Số điện thoại không được rỗng, phải có 10 chữ số, bắt đầu bằng số 0 và chỉ chứa các chữ số.'),
+            'gender' => v::notEmpty()->intVal()->between(0, 1)->setName('gender')->setTemplate('Giới tính không được rỗng và chỉ được nhập 0 hoặc 1.'),
             'avatar' => v::notEmpty()->setName('email')->setTemplate('Email không được rỗng'),
         ];
 

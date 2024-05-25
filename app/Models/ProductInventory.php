@@ -43,9 +43,9 @@ class ProductInventory extends Model
         $validators = [
             'product_id' => v::notEmpty()->setName('product_id')->setTemplate('Khách hàng không được rỗng'),
             'warehouse_id' => v::notEmpty()->setName('warehouse_id')->setTemplate('Nhà kho không được rỗng'),
-            'quantity_available' => v::notEmpty()->setName('quantity_available')->setTemplate('Số lượng hiện có không được rỗng'),
-            'minimum_stock_level' => v::notEmpty()->setName('minimum_stock_level')->setTemplate('Mức tồn kho tối thiểu không được rỗng'),
-            'status' => v::notEmpty()->setName('status')->setTemplate('Trạng thái không được rỗng'),
+            'quantity_available' => v::notEmpty()->numericVal()->positive()->setName('quantity_available')->setTemplate('Số lượng hiện có không hợp lệ. Số lượng hiện có không được trống và phải là số dương.'),
+            'minimum_stock_level' => v::notEmpty()->numericVal()->positive()->setName('minimum_stock_level')->setTemplate('Mức tồn kho tối thiểu không hợp lệ. Mức tồn kho tối thiểu không được trống và phải là số dương.'),
+            'status' => v::notEmpty()->in(['ACTIVE', 'DELETED'])->setName('status')->setTemplate('Trạng thái không hợp lệ. Trạng thái chỉ có thể là ACTIVE hoặc DELETED.'),
         ];
 
         $error = "";
