@@ -19,27 +19,27 @@ class WarehouseController
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
-            $warehouse->where('name', 'like', $name . '%');
+            $warehouse->where('name', 'like', '%' . $name . '%');
         }
 
         if (isset($_GET['address'])) {
             $address = urldecode($_GET['address']);
-            $warehouse->where('address', 'like', $address . '%');
+            $warehouse->where('address', 'like', '%' . $address . '%');
         }
 
         if (isset($_GET['city'])) {
             $city = urldecode($_GET['city']);
-            $warehouse->where('city', 'like', $city . '%');
+            $warehouse->where('city', 'like', '%' . $city . '%');
         }
 
         if (isset($_GET['district'])) {
             $district = urldecode($_GET['district']);
-            $warehouse->where('district', 'like', $district . '%');
+            $warehouse->where('district', 'like', '%' . $district . '%');
         }
 
         if (isset($_GET['ward'])) {
             $ward = urldecode($_GET['ward']);
-            $warehouse->where('ward', 'like', $ward . '%');
+            $warehouse->where('ward', 'like', '%' . $ward . '%');
         }
 
         return $warehouse->get();

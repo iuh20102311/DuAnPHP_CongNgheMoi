@@ -40,22 +40,22 @@ class OrderController
 
         if (isset($_GET['address'])) {
             $address = urldecode($_GET['address']);
-            $orders->where('address', 'like', $address . '%');
+            $orders->where('address', 'like', '%' . $address . '%');
         }
 
         if (isset($_GET['city'])) {
             $city = urldecode($_GET['city']);
-            $orders->where('city', 'like', $city . '%');
+            $orders->where('city', 'like', '%' . $city . '%');
         }
 
         if (isset($_GET['district'])) {
             $district = urldecode($_GET['district']);
-            $orders->where('district', 'like', $district . '%');
+            $orders->where('district', 'like', '%' . $district . '%');
         }
 
         if (isset($_GET['ward'])) {
             $ward = urldecode($_GET['ward']);
-            $orders->where('ward', 'like', $ward . '%');
+            $orders->where('ward', 'like', '%' . $ward . '%');
         }
 
         $orders = $orders->get();

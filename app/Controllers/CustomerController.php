@@ -43,22 +43,22 @@ class CustomerController
 
         if (isset($_GET['address'])) {
             $address = urldecode($_GET['address']);
-            $customer->where('address', 'like', $address . '%');
+            $customer->where('address', 'like', '%' . $address . '%');
         }
 
         if (isset($_GET['city'])) {
             $city = urldecode($_GET['city']);
-            $customer->where('city', 'like', $city . '%');
+            $customer->where('city', 'like', '%' . $city . '%');
         }
 
         if (isset($_GET['district'])) {
             $district = urldecode($_GET['district']);
-            $customer->where('district', 'like', $district . '%');
+            $customer->where('district', 'like', '%' . $district . '%');
         }
 
         if (isset($_GET['ward'])) {
             $ward = urldecode($_GET['ward']);
-            $customer->where('ward', 'like', $ward . '%');
+            $customer->where('ward', 'like', '%' . $ward . '%');
         }
 
         return $customer->get();

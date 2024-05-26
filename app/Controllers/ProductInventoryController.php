@@ -12,7 +12,7 @@ class ProductInventoryController
 {
     public function getProductInventories() : Collection
     {
-        $productinventories = ProductInventory::query()->where('status', '!=' , 'DISABLE');
+        $productinventories = ProductInventory::query()->where('status', '!=' , 'DISABLE')->orderBy('quantity_available', 'asc');
 
         if (isset($_GET['quantity_available'])) {
             $quantity_available = urldecode($_GET['quantity_available']);

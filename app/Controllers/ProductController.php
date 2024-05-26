@@ -31,17 +31,17 @@ class ProductController
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
-            $product->where('name', 'like', $name . '%');
+            $product->where('name', 'like', '%' . $name . '%');
         }
 
         if (isset($_GET['packing'])) {
             $packing = urldecode($_GET['packing']);
-            $product->where('packing', 'like', $packing . '%');
+            $product->where('packing', 'like', '%' . $packing . '%');
         }
 
         if (isset($_GET['sku'])) {
             $sku = urldecode($_GET['sku']);
-            $product->where('sku', 'like',  $sku . '%');
+            $product->where('sku', 'like',  '%' . $sku . '%');
         }
 
         if (isset($_GET['quantity'])) {

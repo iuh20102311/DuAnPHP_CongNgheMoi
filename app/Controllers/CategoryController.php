@@ -23,7 +23,7 @@ class CategoryController
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
-            $category->where('name', 'like', $name . '%');
+            $category->where('name', 'like',  '%' . $name . '%');
         }
 
         if (isset($_GET['type'])) {

@@ -22,12 +22,12 @@ class UserController
 
         if (isset($_GET['email'])) {
             $email = urldecode($_GET['email']);
-            $users->where('email', 'like', $email . '%');
+            $users->where('email', 'like', '%' . $email . '%');
         }
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
-            //$name = str_replace(' ', '%20', $name);
+            $users->where('name', 'like', '%' . $name . '%');
 
         }
 

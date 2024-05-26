@@ -14,7 +14,7 @@ class MaterialImportReceipt extends Model
 {
     use HasFactory;
     protected $table = 'material_import_receipts';
-    protected $fillable = ['provider_id','type','note','receipt_date','total_price','warehouse_id','status','created_at','updated_at'];
+    protected $fillable = ['provider_id','receipt_id','type','note','receipt_date','total_price','warehouse_id','status','created_at','updated_at'];
     protected $primaryKey = 'id';
     public $timestamps = true;
 

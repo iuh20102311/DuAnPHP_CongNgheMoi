@@ -22,12 +22,12 @@ class ProviderController
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
-            $provider->where('name', 'like', $name . '%');
+            $provider->where('name', 'like', '%' . $name . '%');
         }
 
         if (isset($_GET['email'])) {
             $email = urldecode($_GET['email']);
-            $provider->where('email', 'like', $email . '%');
+            $provider->where('email', 'like', '%' . $email . '%');
         }
 
         if (isset($_GET['phone'])) {
@@ -38,22 +38,22 @@ class ProviderController
 
         if (isset($_GET['address'])) {
             $address = urldecode($_GET['address']);
-            $provider->where('address', 'like', $address . '%');
+            $provider->where('address', 'like', '%' . $address . '%');
         }
 
         if (isset($_GET['city'])) {
             $city = urldecode($_GET['city']);
-            $provider->where('city', 'like', $city . '%');
+            $provider->where('city', 'like', '%' . $city . '%');
         }
 
         if (isset($_GET['district'])) {
             $district = urldecode($_GET['district']);
-            $provider->where('district', 'like', $district . '%');
+            $provider->where('district', 'like', '%' . $district . '%');
         }
 
         if (isset($_GET['ward'])) {
             $ward = urldecode($_GET['ward']);
-            $provider->where('ward', 'like', $ward . '%');
+            $provider->where('ward', 'like', '%' . $ward . '%');
         }
 
         return $provider->get();

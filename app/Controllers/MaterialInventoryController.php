@@ -13,7 +13,7 @@ class MaterialInventoryController
 {
     public function getMaterialInventories() : Collection
     {
-        $materialinventories = MaterialInventory::query()->where('status', '!=' , 'DISABLE');
+        $materialinventories = MaterialInventory::query()->where('status', '!=' , 'DISABLE')->where('status', '!=' , 'DISABLE')->orderBy('quantity_available', 'asc');
 
         if (isset($_GET['quantity_available'])) {
             $quantity_available = urldecode($_GET['quantity_available']);
