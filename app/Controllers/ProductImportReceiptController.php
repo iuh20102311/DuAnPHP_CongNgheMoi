@@ -119,16 +119,6 @@ class ProductImportReceiptController
     {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $providerIds = array_unique(array_column($data['products'], 'provider_id'));
-        foreach ($providerIds as $providerId) {
-            $providerExists = Provider::where('id', $providerId)->exists();
-            if (!$providerExists) {
-                header('Content-Type: application/json');
-                echo json_encode(['error' => 'Nhà cung cấp không tồn tại']);
-                return;
-            }
-        }
-
         $warehouseExists = Warehouse::where('id', $data['warehouse_id'])->exists();
         if (!$warehouseExists) {
             header('Content-Type: application/json');
@@ -136,7 +126,6 @@ class ProductImportReceiptController
             return;
         }
 
-        // Tạo mới một ProductImportReceipt
         $productImportReceipt = ProductImportReceipt::create([
             'warehouse_id' => $data['warehouse_id']
         ]);
@@ -153,7 +142,6 @@ class ProductImportReceiptController
             $productImportReceiptDetail = $productImportReceipt->details()->create([
                 'product_id' => $product['product_id'],
                 'quantity' => $product['quantity'],
-                'provider_id' => $product['provider_id'],
             ]);
 
             if ($productInventory) {
@@ -162,7 +150,6 @@ class ProductImportReceiptController
                 $productInventory->save();
             } else {
                 ProductInventory::create([
-                    'provider_id' => $product['provider_id'],
                     'product_id' => $product['product_id'],
                     'warehouse_id' => $data['warehouse_id'],
                     'quantity_available' => $product['quantity'],
