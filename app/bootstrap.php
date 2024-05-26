@@ -169,6 +169,9 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
     });
 
     $router->group(array('prefix' => '/v1/material_export_receipts'), function (RouteCollector $router) {
+        $router->post('/count', ['App\Controllers\MaterialExportReceiptController', 'countTotalReceipts']);
+
+
         $router->get('/{id}/details', ['App\Controllers\MaterialExportReceiptController', 'getExportReceiptDetailsByExportReceipt']);
         $router->put('/{id}', ['App\Controllers\MaterialExportReceiptController', 'updateMaterialExportReceiptById']);
         $router->delete('/{id}', ['App\Controllers\MaterialExportReceiptController', 'deleteMaterialExportReceipt']);
@@ -178,6 +181,8 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
     });
 
     $router->group(array('prefix' => '/v1/material_import_receipts'), function (RouteCollector $router) {
+        $router->post('/count', ['App\Controllers\MaterialImportReceiptController', 'countTotalReceipts']);
+
         $router->get('/{id}/details', ['App\Controllers\MaterialImportReceiptController', 'getImportReceiptDetailsByImportReceipt']);
         $router->put('/{id}', ['App\Controllers\MaterialImportReceiptController', 'updateMaterialImportReceiptById']);
         $router->delete('/{id}', ['App\Controllers\MaterialImportReceiptController', 'deleteMaterialImportReceipt']);
@@ -187,6 +192,8 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
     });
 
     $router->group(array('prefix' => '/v1/product_export_receipts'), function (RouteCollector $router) {
+        $router->post('/count', ['App\Controllers\ProductExportReceiptController', 'countTotalReceipts']);
+
         $router->get('/{id}/details', ['App\Controllers\ProductExportReceiptController', 'getExportReceiptDetailsByExportReceipt']);
         $router->put('/{id}', ['App\Controllers\ProductExportReceiptController', 'updateProductExportReceiptById']);
         $router->delete('/{id}', ['App\Controllers\ProductExportReceiptController', 'deleteProductExportReceipt']);
@@ -196,6 +203,8 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
     });
 
     $router->group(array('prefix' => '/v1/product_import_receipts'), function (RouteCollector $router) {
+        $router->post('/count', ['App\Controllers\ProductImportReceiptController', 'countTotalReceipts']);
+
         $router->get('/{id}/details', ['App\Controllers\ProductImportReceiptController', 'getImportReceiptDetailsByExportReceipt']);
         $router->put('/{id}', ['App\Controllers\ProductImportReceiptController', 'updateProductImportReceiptById']);
         $router->delete('/{id}', ['App\Controllers\ProductImportReceiptController', 'deleteProductImportReceipt']);

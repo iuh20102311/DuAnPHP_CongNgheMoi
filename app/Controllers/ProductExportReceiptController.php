@@ -11,6 +11,27 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductExportReceiptController
 {
+    public function countTotalReceipts()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!isset($data['month']) || !isset($data['year'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Tháng và năm là bắt buộc.'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $month = $data['month'];
+        $year = $data['year'];
+
+        $totalReceipts = ProductExportReceipt::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->count();
+
+        header('Content-Type: application/json');
+        echo json_encode(['total_receipts' => $totalReceipts]);
+    }
+
     public function getProductExportReceipts(): Collection
     {
         $productERs = ProductExportReceipt::query()->where('status', '!=' , 'DELETED');

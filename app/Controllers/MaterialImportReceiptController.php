@@ -12,6 +12,27 @@ use Illuminate\Database\Eloquent\Model;
 
 class MaterialImportReceiptController
 {
+    public function countTotalReceipts()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!isset($data['month']) || !isset($data['year'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Tháng và năm là bắt buộc.'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $month = $data['month'];
+        $year = $data['year'];
+
+        $totalReceipts = MaterialImportReceipt::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->count();
+
+        header('Content-Type: application/json');
+        echo json_encode(['total_receipts' => $totalReceipts]);
+    }
+
     public function getMaterialImportReceipts(): Collection
     {
         $materialIRs = MaterialImportReceipt::query()->where('status', '!=' , 'DELETED');
