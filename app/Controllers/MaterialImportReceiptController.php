@@ -193,7 +193,7 @@ class MaterialImportReceiptController
 
             if ($materialInventory) {
                 $materialInventory->quantity_available += $quantity;
-                $materialInventory->minimum_stock_level = isset($material['minimum_stock_level']) ? $material['minimum_stock_level'] : 0;
+                $materialInventory->minimum_stock_level = 0;
                 $materialInventory->save();
             } else {
                 MaterialInventory::create([
@@ -201,7 +201,6 @@ class MaterialImportReceiptController
                     'material_id' => $material['material_id'],
                     'warehouse_id' => $data['warehouse_id'],
                     'quantity_available' => $quantity,
-                    'minimum_stock_level' => $material['minimum_stock_level'] ?? 0,
                 ]);
             }
 
