@@ -148,7 +148,7 @@ class MaterialImportReceiptController
             return;
         }
 
-        // Kiểm tra nếu người dùng gửi receipt_id hoặc nếu không gửi thì ta tự động tạo theo 1 cơ cế nào đó
+        // Kiểm tra nếu người dùng gửi receipt_id hoặc nếu không gửi thì ta tự động tạo
         $receiptId = null;
         if (isset($data['receipt_id'])) {
             $receiptId = $data['receipt_id'];
@@ -160,9 +160,11 @@ class MaterialImportReceiptController
                 return;
             }
         } else {
-            // Nếu người dùng không gửi receipt_id, tự động tạo receipt_id mới
-            $maxReceiptId = MaterialImportReceipt::max('receipt_id');
-            $receiptId = $maxReceiptId ? $maxReceiptId + 1 : 1;
+            // Tạo receipt_id ngẫu nhiên không trùng
+            do {
+                $receiptId = mt_rand(1, 10000); // Tạo giá trị ngẫu nhiên từ 1000000 đến 9999999
+                $existingReceipt = MaterialImportReceipt::where('receipt_id', $receiptId)->first();
+            } while ($existingReceipt);
         }
 
         $materialImportReceipt = MaterialImportReceipt::create([
@@ -191,7 +193,7 @@ class MaterialImportReceiptController
 
             if ($materialInventory) {
                 $materialInventory->quantity_available += $quantity;
-                $materialInventory->minimum_stock_level = max($materialInventory->minimum_stock_level, $material['minimum_stock_level']);
+                $materialInventory->minimum_stock_level = isset($material['minimum_stock_level']) ? $material['minimum_stock_level'] : 0;
                 $materialInventory->save();
             } else {
                 MaterialInventory::create([
@@ -199,7 +201,7 @@ class MaterialImportReceiptController
                     'material_id' => $material['material_id'],
                     'warehouse_id' => $data['warehouse_id'],
                     'quantity_available' => $quantity,
-                    'minimum_stock_level' => $material['minimum_stock_level'],
+                    'minimum_stock_level' => $material['minimum_stock_level'] ?? 0,
                 ]);
             }
 
