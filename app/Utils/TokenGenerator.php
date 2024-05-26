@@ -20,11 +20,11 @@ class TokenGenerator
         $algorithm = new Sha256();
         $now = new DateTimeImmutable();
 
-        // Lấy thông tin từ bảng Users
         $user = User::find($userId);
 
-        // Lấy thông tin từ bảng Roles
         $role = Role::find($user->role_id);
+
+        $profile = $user->profile;
 
         $token = $tokenBuilder
             ->issuedBy('http:/localhost:3000')
@@ -36,6 +36,7 @@ class TokenGenerator
             ->withClaim('name', $user->name)
             ->withClaim('email', $user->email)
             ->withClaim('role', $role->name)
+            ->withClaim('profile_id', $profile->id)
             ->withClaim('type', 'Access')
             ->getToken($algorithm, $signingKey);
 
@@ -49,11 +50,12 @@ class TokenGenerator
         $algorithm = new Sha256();
         $now = new DateTimeImmutable();
 
-        // Lấy thông tin từ bảng Users
         $user = User::find($userId);
 
-        // Lấy thông tin từ bảng Roles
         $role = Role::find($user->role_id);
+
+        $profile = $user->profile;
+
 
         $token = $tokenBuilder
             ->issuedBy('http:/localhost:3000')
@@ -65,6 +67,7 @@ class TokenGenerator
             ->withClaim('name', $user->name)
             ->withClaim('email', $user->email)
             ->withClaim('role', $role->name)
+            ->withClaim('profile_id', $profile->id)
             ->withClaim('type', 'Refresh')
             ->getToken($algorithm, $signingKey);
 

@@ -14,7 +14,7 @@ class Order extends Model
 {
     use HasFactory;
     protected $table = 'orders';
-    protected $fillable = ['customer_id','create_by','total_price','phone','address','city','district','ward','status','created_at','updated_at'];
+    protected $fillable = ['customer_id','created_by','total_price','phone','address','city','district','ward','status','created_at','updated_at'];
     protected $primaryKey = 'id';
     public $timestamps = true;
 

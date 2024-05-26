@@ -134,16 +134,6 @@ class MaterialImportReceiptController
     {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $providerIds = array_unique(array_column($data['materials'], 'provider_id'));
-        foreach ($providerIds as $providerId) {
-            $providerExists = Provider::where('id', $providerId)->exists();
-            if (!$providerExists) {
-                header('Content-Type: application/json');
-                echo json_encode(['error' => 'Nhà cung cấp không tồn tại']);
-                return;
-            }
-        }
-
         $warehouseExists = Warehouse::where('id', $data['warehouse_id'])->exists();
         if (!$warehouseExists) {
             header('Content-Type: application/json');
@@ -151,9 +141,16 @@ class MaterialImportReceiptController
             return;
         }
 
-        // Tạo mới một MaterialImportReceipt
+        $providerExists = Provider::where('id', $data['provider_id'])->exists();
+        if (!$providerExists) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Nhà cung cấp không tồn tại']);
+            return;
+        }
+
         $materialImportReceipt = MaterialImportReceipt::create([
-            'warehouse_id' => $data['warehouse_id']
+            'warehouse_id' => $data['warehouse_id'],
+            'provider_id' => $data['provider_id']
         ]);
 
         $materials = $data['materials'] ?? [];
@@ -161,6 +158,7 @@ class MaterialImportReceiptController
 
         foreach ($materials as $material) {
             $materialInventory = MaterialInventory::where('material_id', $material['material_id'])
+                ->where('provider_id', $material['provider_id'])
                 ->where('warehouse_id', $data['warehouse_id'])
                 ->first();
 
@@ -172,7 +170,6 @@ class MaterialImportReceiptController
             $materialImportReceiptDetail = $materialImportReceipt->details()->create([
                 'material_id' => $material['material_id'],
                 'quantity' => $quantity,
-                'provider_id' => $material['provider_id'],
                 'price' => $price,
             ]);
 
@@ -182,7 +179,7 @@ class MaterialImportReceiptController
                 $materialInventory->save();
             } else {
                 MaterialInventory::create([
-                    'provider_id' => $material['provider_id'],
+                    'provider_id' => $data['provider_id'],
                     'material_id' => $material['material_id'],
                     'warehouse_id' => $data['warehouse_id'],
                     'quantity_available' => $quantity,

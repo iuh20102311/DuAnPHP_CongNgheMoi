@@ -35,7 +35,13 @@ class AuthController
 
         $role = Role::where('id', $user->role_id)->first();
         $roleName = $role->name;
-        $response = new LoginResponseDTO(TokenGenerator::generateAccessToken($user->id), TokenGenerator::generateRefreshToken($user->id));
+
+        $profile = Profile::where('user_id', $user->id)->first(); // Lấy profile dựa trên user_id
+        if (!$profile) {
+            return json_encode(['error' => 'Không tìm thấy thông tin hồ sơ.'], JSON_UNESCAPED_UNICODE);
+        }
+
+        $response = new LoginResponseDTO(TokenGenerator::generateAccessToken($user->id,$profile->id), TokenGenerator::generateRefreshToken($user->id,$profile->id));
         return json_encode($response);
     }
 
