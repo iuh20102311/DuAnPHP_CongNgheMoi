@@ -22,8 +22,7 @@ class CustomerController
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
-            //$name = str_replace(' ', '%20', $name);
-            $customer->where('name', 'like', '%' . $name . '%');
+            $customer->where('name', 'like', $name . '%');
         }
 
         if (isset($_GET['gender'])) {
@@ -33,22 +32,33 @@ class CustomerController
 
         if (isset($_GET['email'])) {
             $email = urldecode($_GET['email']);
-            $customer->where('email', $email);
+            $customer->where('email', 'like', $email . '%');
         }
 
         if (isset($_GET['phone'])) {
             $phone = urldecode($_GET['phone']);
-            $customer->where('phone', $phone);
+            $length = strlen($phone);
+            $customer->whereRaw('SUBSTRING(phone, 1, ?) = ?', [$length, $phone]);
+        }
+
+        if (isset($_GET['address'])) {
+            $address = urldecode($_GET['address']);
+            $customer->where('address', 'like', $address . '%');
         }
 
         if (isset($_GET['city'])) {
             $city = urldecode($_GET['city']);
-            $customer->where('city', 'like', '%' . $city . '%');
+            $customer->where('city', 'like', $city . '%');
         }
 
         if (isset($_GET['district'])) {
             $district = urldecode($_GET['district']);
-            $customer->where('district', 'like', '%' . $district . '%');
+            $customer->where('district', 'like', $district . '%');
+        }
+
+        if (isset($_GET['ward'])) {
+            $ward = urldecode($_GET['ward']);
+            $customer->where('ward', 'like', $ward . '%');
         }
 
         return $customer->get();

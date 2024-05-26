@@ -20,8 +20,7 @@ class GroupCustomerController
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
-            //$name = str_replace(' ', '%20', $name);
-            $groupcustomer->where('name', 'like', '%' . $name . '%');
+            $groupcustomer->where('name', 'like', $name . '%');
         }
 
         return $groupcustomer->get();

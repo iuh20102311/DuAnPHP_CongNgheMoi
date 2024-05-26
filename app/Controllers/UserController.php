@@ -22,19 +22,19 @@ class UserController
 
         if (isset($_GET['email'])) {
             $email = urldecode($_GET['email']);
-            $users->where('email', $email);
+            $users->where('email', 'like', $email . '%');
         }
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
             //$name = str_replace(' ', '%20', $name);
-            $users->where('name', 'like', '%' . $name . '%');
+
         }
 
         if (isset($_GET['role_name'])) {
             $roleName = urldecode($_GET['role_name']);
             $users->whereHas('role', function ($query) use ($roleName) {
-                $query->where('name', 'like', '%' . $roleName . '%');
+                $query->where('name', 'like', $roleName . '%');
             });
         }
 

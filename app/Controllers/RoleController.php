@@ -20,8 +20,7 @@ class RoleController
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
-            //$name = str_replace(' ', '%20', $name);
-            $role->where('name', 'like', '%' . $name . '%');
+            $role->where('name', 'like', $name . '%');
         }
 
         return $role->get();

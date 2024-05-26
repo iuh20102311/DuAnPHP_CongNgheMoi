@@ -23,13 +23,12 @@ class MaterialController
 
         if (isset($_GET['name'])) {
             $name = urldecode($_GET['name']);
-            //$name = str_replace(' ', '%20', $name);
-            $material->where('name', 'like', '%' . $name . '%');
+            $material->where('name', 'like', $name . '%');
         }
 
         if (isset($_GET['unit'])) {
             $unit = urldecode($_GET['unit']);
-            $material->where('unit', $unit);
+            $material->where('unit', 'like', $unit . '%');
         }
 
         if (isset($_GET['weight'])) {
@@ -64,8 +63,7 @@ class MaterialController
 
         if (isset($_GET['origin'])) {
             $origin = urldecode($_GET['origin']);
-            //$name = str_replace(' ', '%20', $name);
-            $material->where('origin', 'like', '%' . $origin . '%');
+            $material->where('origin', 'like', $origin . '%');
         }
 
         return $material->get();

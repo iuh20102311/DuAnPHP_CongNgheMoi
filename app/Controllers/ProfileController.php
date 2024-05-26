@@ -15,7 +15,8 @@ class ProfileController
 
         if (isset($_GET['phone'])) {
             $phone = urldecode($_GET['phone']);
-            $profile->where('phone', $phone);
+            $length = strlen($phone);
+            $profile->whereRaw('SUBSTRING(phone, 1, ?) = ?', [$length, $phone]);
         }
 
         if (isset($_GET['gender'])) {
@@ -25,14 +26,13 @@ class ProfileController
 
         if (isset($_GET['first_name'])) {
             $first_name = urldecode($_GET['first_name']);
-            //$name = str_replace(' ', '%20', $name);
-            $profile->where('first_name', 'like', '%' . $first_name . '%');
+            $profile->where('first_name', 'like', $first_name . '%');
         }
 
         if (isset($_GET['last_name'])) {
             $last_name = urldecode($_GET['last_name']);
             //$name = str_replace(' ', '%20', $name);
-            $profile->where('last_name', 'like', '%' . $last_name . '%');
+            $profile->where('last_name', 'like', $last_name . '%');
         }
 
         return $profile->get();

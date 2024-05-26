@@ -39,7 +39,7 @@ class Customer extends Model
             'city' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('city')->setTemplate('Thành phố không hợp lệ. Thành phố phải viết hoa chữ cái đầu tiên của mỗi từ và chỉ chứa chữ cái.'),
             'district' => v::notEmpty()->regex('/^([\p{L}\p{M}]+\s*)+$/u')->setName('district')->setTemplate('Tên quận/huyện không hợp lệ. Tên quận/huyện phải viết hoa chữ cái đầu tiên của mỗi từ và chỉ chứa chữ cái.'),
             'ward' => v::notEmpty()->regex('/^(?=.*[\p{L}\p{M}])(?=.*\d)([\p{L}\p{M}]+\s*)*?([\p{L}\p{M}]*\d+)?$/u')->setName('ward')->setTemplate('Phường không hợp lệ. Phường phải chứa chữ và số, và mỗi từ phải viết hoa chữ cái đầu tiên.'),
-//          'status' => v::notEmpty()->in(['ACTIVE', 'ENABLE'])->setName('status')->setTemplate('Trạng thái không được rỗng và chỉ được phép là ACTIVE hoặc ENABLE.'),
+            'status' => v::notEmpty()->in(['ACTIVE', 'ENABLE'])->setName('status')->setTemplate('Trạng thái không được rỗng và chỉ được phép là ACTIVE hoặc ENABLE.'),
         ];
 
         $error = "";
