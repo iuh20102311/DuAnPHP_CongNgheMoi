@@ -12,6 +12,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductController
 {
+    public function countProducts()
+    {
+        $total = Product::where('status', 'IN_STOCK')->count();
+        $result = ['total' => $total];
+        return json_encode($result);
+    }
+
+
     public function getProducts() : Collection
     {
         $product = Product::query()->where('status', '!=' , 'DELETED');

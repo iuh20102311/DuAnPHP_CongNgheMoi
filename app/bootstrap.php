@@ -74,7 +74,8 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
     });
 
     $router->group(array('prefix' => '/v1/products'), function (RouteCollector $router) {
-        $router->get('/', ['App\Controllers\ProductController', 'getProducts']);
+        $router->get('/count', ['App\Controllers\ProductController', 'countProducts']);
+
         $router->get('/{id}/inventories', ['App\Controllers\ProductController', 'getProductIventoryByProduct']);
         $router->post('/{id}/categories', ['App\Controllers\ProductController', 'addCategoryToProduct']);
         $router->get('/{id}/categories', ['App\Controllers\ProductController', 'getCategoryByProduct']);
@@ -87,6 +88,7 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
         $router->delete('/{id}', ['App\Controllers\ProductController', 'deleteProduct']);
         $router->get('/{id}', ['App\Controllers\ProductController', 'getProductById']);
         $router->post('/', ['App\Controllers\ProductController', 'createProduct']);
+        $router->get('/', ['App\Controllers\ProductController', 'getProducts']);
     });
 
     $router->group(array('prefix' => '/v1/product_prices'), function (RouteCollector $router) {
@@ -132,6 +134,8 @@ $router->group(array('prefix' => '/api'), function (RouteCollector $router) {
     });
 
     $router->group(array('prefix' => '/v1/materials'), function (RouteCollector $router) {
+        $router->get('/count', ['App\Controllers\MaterialController', 'countMaterials']);
+
         $router->post('/{id}/export_receipt_details', ['App\Controllers\MaterialController', 'addExportReceiptDetailToMaterial']);
         $router->get('/{id}/export_receipt_details', ['App\Controllers\MaterialController', 'getExportReceiptDetailsByMaterial']);
         $router->get('/{id}/import_receipt_details', ['App\Controllers\MaterialController', 'getImportReceiptDetailsByMaterial']);

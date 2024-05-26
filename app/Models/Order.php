@@ -23,6 +23,11 @@ class Order extends Model
         return $this->belongsToMany(Product::class, 'order_details');
     }
 
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class);
+    }
+
     /**
      * @throws Exception
      */
@@ -30,7 +35,7 @@ class Order extends Model
     {
         $validators = [
             'customer_id' => v::notEmpty()->setName('group_customer_id')->setTemplate('Khách hàng không được rỗng'),
-            'create_by' => v::notEmpty()->setName('create_by')->setTemplate('Người tạo đơn hàng không được rỗng'),
+            'created_by' => v::notEmpty()->setName('create_by')->setTemplate('Người tạo đơn hàng không được rỗng'),
             'total_price' => v::notEmpty()->numericVal()->positive()->setName('total_price')->setTemplate('Tổng tiền không hợp lệ. Tổng tiền không được trống và phải là số dương.'),
             'phone' => v::digit()->length(10, 10)->startsWith('0')->setName('phone')->setTemplate('Số điện thoại không được rỗng, phải có 10 chữ số, bắt đầu bằng số 0 và chỉ chứa các chữ số.'),
             'address' => v::notEmpty()->regex('/^[\p{L}\p{M}\d\s\/]+$/u')->setName('address')->setTemplate('Địa chỉ không hợp lệ. Địa chỉ phải chứa chữ, số và ký tự /.'),

@@ -123,20 +123,20 @@ class OrderController
         return $orderDetails;
     }
 
-    public function createOrder(): Model | string
-    {
-        $data = json_decode(file_get_contents('php://input'), true);
-        $order = new Order();
-        $error = $order->validate($data);
-        if ($error != "") {
-            http_response_code(404);
-            error_log($error);
-            return json_encode(["error" => $error]);
-        }
-        $order->fill($data);
-        $order->save();
-        return $order;
-    }
+//    public function createOrder(): Model | string
+//    {
+//        $data = json_decode(file_get_contents('php://input'), true);
+//        $order = new Order();
+//        $error = $order->validate($data);
+//        if ($error != "") {
+//            http_response_code(404);
+//            error_log($error);
+//            return json_encode(["error" => $error]);
+//        }
+//        $order->fill($data);
+//        $order->save();
+//        return $order;
+//    }
 
     public function updateOrderById($id): bool | int | string
     {
@@ -176,4 +176,68 @@ class OrderController
             return "Không tìm thấy";
         }
     }
+
+    public function createOrder()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $customerExists = Customer::where('id', $data['customer_id'])->exists();
+        if (!$customerExists) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Khách hàng không tồn tại']);
+            return;
+        }
+
+
+        // Validate and retrieve profile
+        $profile = Profile::find($data['created_by']);
+        if (!$profile) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Người này không tồn tại']);
+            return;
+        }
+
+        // Debugging information
+        error_log("Creating order for customer_id: " . $data['customer_id']);
+        error_log("Created by profile_id: " . $data['created_by']);
+
+        $order = Order::create([
+            'customer_id' => $data['customer_id'],
+            'created_by' => $data['created_by'],
+            'phone' => $data['phone'],
+            'address' => $data['address'],
+            'city' => $data['city'],
+            'district' => $data['district'],
+            'ward' => $data['ward'],
+        ]);
+
+        $orderDetails = $data['order_details'] ?? [];
+        $totalPrice = 0;
+
+        foreach ($orderDetails as $orderDetail) {
+            $productExists = Product::where('id', $orderDetail['product_id'])->exists();
+            if (!$productExists) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Sản phẩm không tồn tại']);
+                return;
+            }
+
+            $price = $orderDetail['price'];
+            $quantity = $orderDetail['quantity'];
+            $totalPrice += $price * $quantity;
+
+            $order->orderDetails()->create([
+                'product_id' => $orderDetail['product_id'],
+                'quantity' => $quantity,
+                'price' => $price,
+            ]);
+        }
+
+        $order->total_price = $totalPrice;
+        $order->save();
+
+        header('Content-Type: application/json');
+        echo json_encode(['message' => 'Tạo đơn hàng thành công']);
+    }
+
 }

@@ -12,6 +12,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class MaterialController
 {
+    public function countMaterials()
+    {
+        $total = Material::where('status', 'IN_STOCK')->count();
+        $result = ['total' => $total];
+        return json_encode($result);
+    }
+
     public function getMaterials(): Collection
     {
         $material = Material::query()->where('status', '!=' , 'DELETED');
