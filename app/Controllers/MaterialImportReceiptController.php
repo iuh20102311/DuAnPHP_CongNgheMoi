@@ -148,9 +148,27 @@ class MaterialImportReceiptController
             return;
         }
 
+        // Kiểm tra nếu người dùng gửi receipt_id hoặc nếu không gửi thì ta tự động tạo theo 1 cơ cế nào đó
+        $receiptId = null;
+        if (isset($data['receipt_id'])) {
+            $receiptId = $data['receipt_id'];
+            // Kiểm tra receipt_id đã tồn tại hay chưa
+            $existingReceipt = MaterialImportReceipt::where('receipt_id', $receiptId)->first();
+            if ($existingReceipt) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Receipt ID đã tồn tại']);
+                return;
+            }
+        } else {
+            // Nếu người dùng không gửi receipt_id, tự động tạo receipt_id mới
+            $maxReceiptId = MaterialImportReceipt::max('receipt_id');
+            $receiptId = $maxReceiptId ? $maxReceiptId + 1 : 1;
+        }
+
         $materialImportReceipt = MaterialImportReceipt::create([
             'warehouse_id' => $data['warehouse_id'],
-            'provider_id' => $data['provider_id']
+            'provider_id' => $data['provider_id'],
+            'receipt_id' => $receiptId,
         ]);
 
         $materials = $data['materials'] ?? [];
@@ -158,11 +176,9 @@ class MaterialImportReceiptController
 
         foreach ($materials as $material) {
             $materialInventory = MaterialInventory::where('material_id', $material['material_id'])
-                ->where('provider_id', $material['provider_id'])
                 ->where('warehouse_id', $data['warehouse_id'])
                 ->first();
 
-            // Tính toán tổng giá cho từng chi tiết
             $price = $material['price'];
             $quantity = $material['quantity'];
             $totalPrice += $price * $quantity;
