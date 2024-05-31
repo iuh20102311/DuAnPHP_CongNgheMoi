@@ -187,8 +187,11 @@ class OrderController
     {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $customerExists = Customer::where('id', $data['customer_id'])->exists();
-        if (!$customerExists) {
+        // Xử lý khách hàng (tạo mới hoặc cập nhật)
+        $customer = $this->handleCustomer($data);
+
+        // Kiểm tra khách hàng tồn tại
+        if (!$customer) {
             header('Content-Type: application/json');
             echo json_encode(['error' => 'Khách hàng không tồn tại']);
             return;
@@ -215,7 +218,7 @@ class OrderController
             }
 
             $order = Order::create([
-                'customer_id' => $data['customer_id'],
+                'customer_id' => $customer->id, // Sử dụng id của khách hàng mới được tạo
                 'created_by' => $profileId,
                 'phone' => $data['phone'],
                 'address' => $data['address'],
@@ -256,5 +259,32 @@ class OrderController
             echo json_encode(['error' => 'Token không hợp lệ'], JSON_UNESCAPED_UNICODE);
             return;
         }
+    }
+
+    private function handleCustomer($data)
+    {
+        $customerData = [
+            'group_customer_id' => $data['group_customer_id'] ?? null,
+            'name' => $data['name'],
+            'gender' => $data['gender'] ?? null,
+            'phone' => $data['phone'],
+            'address' => $data['address'],
+            'city' => $data['city'],
+            'district' => $data['district'],
+            'ward' => $data['ward'],
+        ];
+
+        // Kiểm tra khách hàng đã tồn tại dựa trên số điện thoại
+        $customer = Customer::where('phone', $data['phone'])->first();
+
+        if ($customer) {
+            // Nếu khách hàng đã tồn tại, cập nhật thông tin
+            $customer->update($customerData);
+        } else {
+            // Nếu khách hàng chưa tồn tại, tạo mới
+            $customer = Customer::create($customerData);
+        }
+
+        return $customer;
     }
 }
